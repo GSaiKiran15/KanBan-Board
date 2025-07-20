@@ -120,3 +120,33 @@ Role-based auth and secure token flow → demonstrates security awareness.
 Automated tests at multiple layers → highlights professional engineering hygiene.
 
 Build it like a product, not a tutorial, and you’ll walk away with a flagship project recruiters can’t ignore. When you’re ready for deeper dives—say, how to model checklist items or tackle ordering gaps—just ask. Happy building!
+
+
+    // const data = [
+    // {
+    //     title: 'To-Do',
+    //     items: [
+    //     { id: 0, text: 'Develop this' },
+    //     { id: 1, text: 'Develop that' },
+    //     { id: 2, text: 'Solve this bug' },
+    //     { id: 3, text: 'Solve that bug' },
+    //     { id: 4, text: 'Work on this' },
+    //     { id: 5, text: 'Work on that' },
+    //     ],
+    // },
+    // {
+    //     title: 'In- Progress',
+    //     items: [
+    //     { id: 0, text: 'This is still in progress' },
+    //     { id: 1, text: 'That is still in progress' },
+    //     { id: 2, text: 'Solving another bug' },
+    //     ],
+    // },
+    // {
+    //     title: 'Completed',
+    //     items: [
+    //     { id: 0, text: 'This is Completed' },
+    //     { id: 1, text: 'That is completed' },
+    //     ],
+    // },
+    // ];

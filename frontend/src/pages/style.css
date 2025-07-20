@@ -1,0 +1,48 @@
+body {
+    color: white;
+    background-color: black;
+}
+
+.board {
+  border: 1px solid white;
+  width: 250px;
+  height: 300px;             /* set whatever fixed (or max-) height you like */
+  
+  /* 1) make it a column flex container */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  
+  /* 2) center items horizontally */
+  align-items: center;
+}
+
+#boardTitle {
+  /* span is full-width so text-align works */
+  width: 100%;
+  text-align: center;
+  margin: 0.5em auto;           /* optional spacing */
+  display: inline-block;
+  font-size: clamp(1rem, 5vw, 2rem);
+}
+
+.boardElements {
+  /* remove default bullets & indents */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  
+  /* let the list grow/ shrink to fill remaining space */
+  flex: 1 1 auto;
+  
+  /* center each <li>’s text */
+  text-align: center;
+  
+  /* when it overflows, scroll vertically */
+  overflow-y: auto;
+  width: 100%;
+}
+
+.boardElements li {
+  padding: 0.25em 0;         /* optional spacing between items */
+}
