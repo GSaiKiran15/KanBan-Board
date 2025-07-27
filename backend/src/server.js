@@ -12,8 +12,42 @@ app.get('/api/projects', async (req, res) => {
 
 app.get('/api/boards/:id', async (req, res) => {
     const id = req.params.id
-    const {rows} = await pool.query('select * from boards where parent_board_id=$1', [id])
-    res.json(rows)
+    const boards = await pool.query('select * from boards where parent_board_id=$1', [id])
+    const boardIds = boards.rows.map(b => b.id);
+    const elemsRes = await pool.query(
+    'SELECT * FROM elements WHERE board_id = ANY($1)',
+    [boardIds]
+    );
+    const elements = elemsRes.rows;
+    const boardsWithItems = boards.rows.map(board => ({
+    ...board,
+    items: elements.filter(el => el.board_id === board.id)
+    }));
+      res.json(boardsWithItems);
+    })
+
+app.post('/api/newproject', async( req, res) => {
+    const {title} = req.body
+    const response = await pool.query('insert into projects (title) values ($1)', [title])
+})
+
+app.post('/api/newtable', async(req, res) => {
+    const {projectID, title, parent_board_id} = req.body
+    await pool.query('insert into boards (project_id, title, parent_board_id) values ($1, $2, $3)', [projectID, title, parent_board_id])
+})
+
+app.post('/api/newelement', async(req, res)=>{
+    const {title, subtitle, board_id} = req.body
+    const result = await pool.query(
+    'SELECT COUNT(*) FROM elements WHERE board_id = $1',
+    [board_id]
+    );
+    const position = parseInt(result.rows[0].count) + 1;
+
+    await pool.query(
+    'INSERT INTO elements (title, subtitle, board_id, position) VALUES ($1, $2, $3, $4)',
+    [title, subtitle, board_id, position]
+    );
 })
 
 app.listen(8000, (req, res) => {
