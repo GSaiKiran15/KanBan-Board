@@ -1,16 +1,15 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-.boardWrapper{
+.App {
+  width: 100%;
+  height: 100%;
   display: flex;
-  /* border: white solid 1px; */
+  flex-direction: column;
+  align-items: center;
+  gap: 50px;
+  margin-top: 10px;
+  max-width: none;  
+  padding: 0;      
 }
 
-.board{
-  /* border: cyan solid 1px; */
-  margin: 10px;
-}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: #f6f7f9; }

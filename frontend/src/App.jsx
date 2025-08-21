@@ -19,7 +19,7 @@ const routes = [
     element: <Projects/>,
     loader: async () => {
       const response = await axios.get('/api/projects')
-      return {data: response.data}
+      return response.data
     }
   }
 ]

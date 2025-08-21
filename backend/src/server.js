@@ -50,6 +50,24 @@ app.post('/api/newelement', async(req, res)=>{
     );
 })
 
+app.delete('/api/deleteboard', async(req, res) => {
+    const {id} = req.body
+    console.log(id);
+    await pool.query('delete from boards where id = $1', [id])
+})
+
+app.delete('/api/deleteelement', async(req, res) => {
+    const {id} = req.body
+    console.log(id);
+    await pool.query('delete from elements where id = $1', [id])
+})
+
+app.delete('/api/deleteproject', async (req, res) => {
+    const {id} = req.body
+    console.log(id);
+    await pool.query('delete from projects where id = $1', [id])
+})
+
 app.listen(8000, (req, res) => {
     console.log('Server is running on PORT 8000.');
 })
