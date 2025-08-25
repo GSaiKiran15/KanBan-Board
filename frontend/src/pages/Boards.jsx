@@ -67,37 +67,5 @@ export default function Boards() {
             </DndContext>
         </div>
         </>
-
-        // <>
-        // <div className='boardWrapper'>
-        //     <DndContext collisionDetection={closestCorners}>
-        //         <Column tasks={tasks}/>
-        //     <div className="board" key={table.id}>
-        //     <span className='boardTitle'>{table.title}</span><br></br>
-        //     {tasks.items.map((item) => (
-        //         <span key={item.id}>{item.title}<br></br><button onClick={() => {deleteElement(item.id)}}>Delete Element</button><br></br></span>
-        //     ))}
-        //     <>
-        //     {activeBoard === table.id && elementForm ?
-        //         <>
-        //         <input placeholder='Card Name' value={elementCard} onChange={(e) => setElementCard(e.target.value)}></input>
-        //         <button onClick={() => createElement(table.id)}>Add Card</button>
-        //         <button onClick={() => setElementForm(false)}>Cancel</button>
-        //         </>
-        //         :<> <button onClick={() => {setElementForm(true), setActiveBoard(table.id)}}>Add Card</button>
-        //         <button onClick={() => {deleteBoard(table.id)}}>Delete Table</button></>
-        //     }
-        //     </>
-        //     </div>
-        //     </DndContext>
-
-        // {showForm ? <>
-        // <input value={tableName} onChange={(e) => setTableName(e.target.value)}></input>
-        // <button onClick={createNewTable}>Create</button>
-        // <button onClick={() => setShowForm(false)}>Cancel</button>
-        // </>
-        // :<button onClick={() => setShowForm(true)}>Add a new Table</button>}
-        // </div>
-        // </>
     )
 }

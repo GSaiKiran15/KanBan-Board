@@ -1,15 +1,18 @@
-import "./Column.css"
-import {SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable'
-import { Board } from '../Board/Board'
+import "./Column.css";
+import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable";
+import { Board } from "../Board/Board";
 
-export const Column = ({boards}) => {
+export const Column = ({ boards }) => {
   return (
-    <div className='column'>
-      <SortableContext items={boards} strategy={verticalListSortingStrategy}>
-        {boards.map((board) => (
-            <Board id={board.id} title={board.title} elements={board.items} key={board.id}/>
+    <div className="column">
+      <SortableContext
+        items={boards.map((b) => `col-${b.id}`)}          // ✅ ids only
+        strategy={horizontalListSortingStrategy}
+      >
+        {boards.map((b) => (
+          <Board key={b.id} id={b.id} title={b.title} elements={b.items} />
         ))}
-        </SortableContext>
+      </SortableContext>
     </div>
-  )
-}
+  );
+};
