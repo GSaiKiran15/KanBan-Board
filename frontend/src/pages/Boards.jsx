@@ -1,103 +1,96 @@
-import '../App.css'
-import { useLoaderData, useParams} from 'react-router-dom';
+import '../App.css';
+import { useLoaderData, useParams } from 'react-router-dom';
 import { useState } from 'react';
-import axios from 'axios';
-import {closestCorners, DndContext} from "@dnd-kit/core"
-import { Column } from '../components/Column/Column';
+import { closestCorners, DndContext } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { Column } from '../components/Column/Column';
+
+const colKey  = (id) => `col-${id}`;
+const taskKey = (id) => `task-${id}`;
 
 export default function Boards() {
-    const {id} = useParams()
-    const [boards, setTasks] = useState(useLoaderData())
-    const [showForm, setShowForm] = useState(false)
-    const [tableName, setTableName] = useState('')
-    const [elementCard, setElementCard] = useState('')
-    const [elementForm, setElementForm] = useState(false)
-    const [subheading, setSubheading] = useState('')
-    const [activeBoard, setActiveBoard] = useState()
-    const [boardsInfo, setBoardsInfo] = useState(boards)
+  const [boards, setBoards] = useState(useLoaderData() ?? []);
+  const {id} = useParams()
 
-    async function createNewTable(){
-        const res = await axios.post('/api/newtable', {
-            projectID : id,
-            title: tableName,
-            parent_board_id: id
-        })
-        const newBoard = res.data
-        
-        setBoardsInfo(prev => [...prev, newBoard])
-        setShowForm(false)
-        setTableName('')
-    }
+const onDragEnd = ({ active, over }) => {
+  if (!over) return;
+  if (active.id === over.id) return;
 
-    async function createElement(board_id){
-        const res = await axios.post('/api/newelement', {
-            board_id: board_id,
-            title: elementCard,
-            subheading: subheading || ""
-        })
-        const newTable = res.data
-    }
+  const a = active.data?.current; // { type, columnId?, taskId? }
+  const o = over.data?.current;
 
-    async function deleteBoard(id) {
-        console.log(typeof id);
-        await axios.delete('/api/deleteboard', {
-            data: {id}
-        })
-    }
+  // ----- Column ↔ Column reorder
+  if (a?.type === 'column' && o?.type === 'column') {
+    setBoards(prev => {
+      const ids = prev.map(b => colKey(b.id));
+      const oldIndex = ids.indexOf(active.id);
+      const newIndex = ids.indexOf(over.id);
+      if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return prev;
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+    return;
+  }
 
-    const getTaskPos = (id) => boards.findIndex((task) => task.id === id);
+  // ----- Task moves (within or across columns)
+  if (a?.type === 'task') {
+    setBoards(prev => {
+      const next = prev.map(b => ({ ...b, items: [...(b.items || [])] }));
 
-    const handleDragEnd = event => {
-        const {active, over} = event
-        if (active.id === over.id) return;
-        setTasks((boards) => {
-            const originalPos = getTaskPos(active.id);
-            const newPos = getTaskPos(over.id)
-            return arrayMove(boards, originalPos, newPos)
-        })
-    }
+      const fromCol = next.find(b => b.id === a.columnId);
+      if (!fromCol) return prev;
 
-    return (
-        <>
-        <div className='App'>
-            <h1>My Tasks</h1>
-            <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCorners}>
-                    <Column boards={boards}/>
-            </DndContext>
-        </div>
-        </>
+      // Indexes BEFORE any mutation
+      const fromIds = fromCol.items.map(t => taskKey(t.id));
+      const oldIndex = fromIds.indexOf(active.id);
+      if (oldIndex === -1) return prev;
 
-        // <>
-        // <div className='boardWrapper'>
-        //     <DndContext collisionDetection={closestCorners}>
-        //         <Column tasks={tasks}/>
-        //     <div className="board" key={table.id}>
-        //     <span className='boardTitle'>{table.title}</span><br></br>
-        //     {tasks.items.map((item) => (
-        //         <span key={item.id}>{item.title}<br></br><button onClick={() => {deleteElement(item.id)}}>Delete Element</button><br></br></span>
-        //     ))}
-        //     <>
-        //     {activeBoard === table.id && elementForm ?
-        //         <>
-        //         <input placeholder='Card Name' value={elementCard} onChange={(e) => setElementCard(e.target.value)}></input>
-        //         <button onClick={() => createElement(table.id)}>Add Card</button>
-        //         <button onClick={() => setElementForm(false)}>Cancel</button>
-        //         </>
-        //         :<> <button onClick={() => {setElementForm(true), setActiveBoard(table.id)}}>Add Card</button>
-        //         <button onClick={() => {deleteBoard(table.id)}}>Delete Table</button></>
-        //     }
-        //     </>
-        //     </div>
-        //     </DndContext>
+      // Same-column reorder (use arrayMove directly)
+      if (o?.type === 'task' && o.columnId === a.columnId) {
+        const toIds = fromCol.items.map(t => taskKey(t.id));
+        const newIndex = toIds.indexOf(over.id);
+        if (newIndex === -1 || newIndex === oldIndex) return prev;
+        fromCol.items = arrayMove(fromCol.items, oldIndex, newIndex);
+        return next;
+      }
 
-        // {showForm ? <>
-        // <input value={tableName} onChange={(e) => setTableName(e.target.value)}></input>
-        // <button onClick={createNewTable}>Create</button>
-        // <button onClick={() => setShowForm(false)}>Cancel</button>
-        // </>
-        // :<button onClick={() => setShowForm(true)}>Add a new Table</button>}
-        // </div>
-        // </>
-    )
+      // Across-column move
+      const [moved] = fromCol.items.splice(oldIndex, 1);
+
+      // Figure out target column
+      let toCol = null;
+      if (o?.type === 'task') {
+        toCol = next.find(b => b.id === o.columnId);
+      } else if (o?.type === 'column') {
+        toCol = next.find(b => b.id === o.columnId);
+      }
+      if (!toCol) {
+        // put back if we can't resolve a target
+        fromCol.items.splice(oldIndex, 0, moved);
+        return prev;
+      }
+
+      // Target index
+      let insertIndex = toCol.items.length; // default: append
+      if (o?.type === 'task') {
+        const toIds = toCol.items.map(t => taskKey(t.id));
+        const idx = toIds.indexOf(over.id);
+        insertIndex = idx === -1 ? toCol.items.length : idx;
+      }
+
+      moved.board_id = toCol.id; // keep DB field consistent if you rely on it
+      toCol.items.splice(insertIndex, 0, moved);
+      return next;
+    });
+  }
+};
+
+
+  return (
+    <div className="App">
+      <h1>My Tasks</h1>
+      <DndContext collisionDetection={closestCorners} onDragEnd={onDragEnd}>
+        <Column boards={boards} id={id} />
+      </DndContext>
+    </div>
+  );
 }

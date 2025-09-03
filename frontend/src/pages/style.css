@@ -1,0 +1,21 @@
+body{
+    background-color: black;
+    color: white;
+}
+
+li{
+    list-style: none;
+}
+
+p{
+    text-align: center;
+    padding: 25px 25px;
+    margin: 0;
+}
+ul{
+    margin: 0;
+}
+.board{
+    width: 100px;
+    border: 1px solid white;
+}
