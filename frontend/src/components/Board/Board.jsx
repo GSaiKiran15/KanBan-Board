@@ -1,14 +1,25 @@
 import './Board.css'
 import { useSortable, verticalListSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Element } from '../Element/Element'
 import axios from 'axios'
+import { useState } from 'react'
+import { Card } from '../Card/Card'
 
-export const Board = ({id, title, elements = []}) => {
+export const Board = ({id, title, cards = []}) => {
     const {attributes, listeners, setNodeRef, transform, transition} = useSortable({ id: `col-${id}`, data: { type:'column', columnId:id } });
+    const [cardTitle, setCardTitle] = useState('')
+    const [cardSubTitle, setCardSubTitle] = useState('')
+    const [showForm, setShowForm] = useState(false)
 
-    async function addTask() {
-      const {rows} = axios.post('api/newTask', {})
+    async function newCard(boardId) {
+      console.log(boardId);
+      await axios.post('/api/newCard', {cardTitle, cardSubTitle, boardId})
+    }
+    
+    async function deleteTable(id) {  
+      await axios.delete('/api/deleteBoard', {
+      data: {id}
+    })
     }
 
     const style = {
@@ -20,31 +31,24 @@ return (
     <div ref={setNodeRef} style={style} className="board">
       <div className="column-header">
         <p>{title}</p>
-        {/* 🔒 Column drag handle only */}
         <button className="dragHandle" {...attributes} {...listeners} aria-label="Drag column">⠿</button>
       </div>
-
-      {/* ✅ IDs-only list for tasks (vertical) */}
      <SortableContext
-  items={elements.map(e => `task-${e.id}`)}
+  items={cards.map(c => `task-${c.id}`)}
   strategy={verticalListSortingStrategy}
 >
-  {elements.map(e => <Element key={e.id} element={e} />)}
+  {cards.map(c => <Card key={c.id} card={c} />)}
 </SortableContext>
-      <button id='addTask'>+</button>
-      <button>Delete</button>
+      {showForm ? 
+      <div>
+        <input onChange={(e) => setCardTitle(e.target.value)} placeholder='Name of Card' required></input>
+        <input onChange={(e) => setCardSubTitle(e.target.value)} placeholder='Description of Card'></input>
+        <button onClick={() => newCard(id)}>Add Card</button>
+        <button onClick={() => setShowForm(false)}>Cancel</button>
+        </div>
+         : <button onClick={() => setShowForm(true)}>+</button>}
+      
+      <button onClick={() => deleteTable(id)}>Delete</button>
     </div>
   );
-
-  // return (
-  //   <div ref={setNodeRef} {...attributes} {...listeners} style={style} className='board'>
-  //       <h3>{title}</h3>
-  //       <SortableContext items={elements.map(e => `task-${e.id}`)} strategy={verticalListSortingStrategy}> 
-  //         {elements.map((element) => (
-  //           <Element element={element}/>
-  //         ))}
-  //       </SortableContext>
-  //       <button>Delete</button>
-  //       </div>
-  // )
 }

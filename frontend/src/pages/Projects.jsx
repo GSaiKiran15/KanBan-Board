@@ -16,21 +16,15 @@ export default function Projects(){
     }
 
     const handleCreateProject = async () => {
-        console.log(353);
-        
-        const res = await axios.post('/api/newproject', {title: newTitle})
+        const res = await axios.post('/api/newProject', {title: newTitle})
         const newProject = res.data
-
-        console.log(newProject, 1);
-        console.log(12356464);
-        
         setProjectInfo(prev => [...prev, newProject])
         setNewTitle('');
         setShowForm(false);
     };
 
     const deleteProject = async (id) => {
-        await axios.delete('/api/deleteproject', {data: {id}})
+        await axios.delete('/api/deleteProject', {data: {id}})
         setProjectInfo(prev => prev.filter(p => p.id !== id))
     }
 
