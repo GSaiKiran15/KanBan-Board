@@ -1,9 +1,10 @@
 import '../App.css';
-import { useLoaderData, useParams } from 'react-router-dom';
+import { useLoaderData, useLocation, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { closestCorners, DndContext } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Column } from '../components/Column/Column';
+import './Boards.css'
 
 const colKey  = (id) => `col-${id}`;
 const taskKey = (id) => `task-${id}`;
@@ -83,14 +84,23 @@ const onDragEnd = ({ active, over }) => {
     });
   }
 };
-
-
-  return (
-    <div className="App">
-      <h1>My Tasks</h1>
+   return (
+    <div className="boards-page-container">
+      <header className="boards-header">
+        <h1>My Tasks</h1>
+      </header>
       <DndContext collisionDetection={closestCorners} onDragEnd={onDragEnd}>
         <Column boards={boards} id={id} />
       </DndContext>
     </div>
   );
+
+  // return (
+  //   <div className="App">
+  //     <h1>My Tasks</h1>
+  //     <DndContext collisionDetection={closestCorners} onDragEnd={onDragEnd}>
+  //       <Column boards={boards} id={id} />
+  //     </DndContext>
+  //   </div>
+  // );
 }

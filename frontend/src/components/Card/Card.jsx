@@ -16,20 +16,20 @@ export const Card = ({card}) => {
         await axios.delete('/api/deleteCard', {data: {id}})
     }
 
-    return (
-        <div ref={setNodeRef} {...attributes} {...listeners} style={style} className="card">
-        <h4>{card.title}</h4>
-        <button
-  type="button"
-  onPointerDown={(e) => e.stopPropagation()} // prevent drag from starting
-  onClick={(e) => {
-    e.stopPropagation();                     // prevent bubbling to draggable
-    deleteCard(card.id);
-  }}
->
-  Delete
-</button>
-
-        </div>
-  )
+ return (
+    <div ref={setNodeRef} {...attributes} {...listeners} style={style} className="task-card">
+      <p>{card.title}</p>
+      <button
+        type="button"
+        className="delete-btn delete-btn-card"
+        onPointerDown={(e) => e.stopPropagation()} // This is great for preventing drag!
+        onClick={(e) => {
+          e.stopPropagation();
+          deleteCard(card.id);
+        }}
+      >
+        ✕
+      </button>
+    </div>
+  );
 }

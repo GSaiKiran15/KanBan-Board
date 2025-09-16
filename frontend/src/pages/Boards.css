@@ -1,0 +1,153 @@
+body {
+            background-color: #0d0c22; /* A deep, dark space blue */
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(120, 81, 255, 0.2), transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(0, 255, 231, 0.2), transparent 45%);
+            color: #e0e0e0;
+            font-family: 'Inter', 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            /* Hide body scrollbar and let the container handle it */
+            overflow: hidden;
+        }
+
+        /* --- Main Page Container --- */
+        .boards-page-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 0 48px 24px 48px;
+            box-sizing: border-box;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Header & Title --- */
+        .boards-header {
+            padding: 24px 0;
+            flex-shrink: 0; /* Prevent header from shrinking */
+        }
+
+        .boards-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+            text-shadow:
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px #00e0d8,
+                0 0 30px #00e0d8,
+                0 0 40px #00e0d8;
+        }
+        
+        /* --- Kanban Board (Columns Container) --- */
+        .kanban-board {
+            display: flex;
+            gap: 24px;
+            flex-grow: 1;
+            overflow-x: auto; /* Enable horizontal scrolling for columns */
+            padding-bottom: 20px; /* Space for the scrollbar */
+        }
+        
+        /* --- Custom Scrollbar Styling --- */
+        .kanban-board::-webkit-scrollbar {
+            height: 12px;
+        }
+        .kanban-board::-webkit-scrollbar-track {
+            background: rgba(13, 12, 34, 0.8);
+            border-radius: 10px;
+        }
+        .kanban-board::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, #6a00ff, #00e0d8);
+            border-radius: 10px;
+        }
+        .kanban-board::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(90deg, #8a4cff, #33fff3);
+        }
+
+        /* --- Kanban Column Styling --- */
+        .kanban-column {
+            width: 320px;
+            flex-shrink: 0; /* Prevent columns from shrinking */
+            display: flex;
+            flex-direction: column;
+            background: rgba(23, 22, 49, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            max-height: 100%;
+        }
+        
+        .column-header {
+            padding: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .column-tasks {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        /* Custom scrollbar for task lists */
+        .column-tasks::-webkit-scrollbar {
+            width: 6px;
+        }
+        .column-tasks::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .column-tasks::-webkit-scrollbar-thumb {
+            background: #3c3a5e;
+            border-radius: 10px;
+        }
+
+        /* --- Task Card Styling --- */
+        .task-card {
+            background: rgba(13, 12, 34, 0.8);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #3c3a5e;
+            cursor: grab;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            font-size: 0.95rem;
+        }
+        
+        .task-card:hover {
+            border-color: #6a00ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* --- Add Task Button --- */
+        .add-task-btn {
+            background: transparent;
+            border: 1px dashed rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 12px;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            margin-top: 8px;
+        }
+
+        .add-task-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #6a00ff;
+            color: #fff;
+        }

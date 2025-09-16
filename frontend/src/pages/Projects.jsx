@@ -1,6 +1,7 @@
 import {useLoaderData, useNavigate} from 'react-router-dom'
 import { useState } from 'react';
 import axios from "axios"
+import './Projects.css'
 
 export default function Projects(){
     const initialProjects = useLoaderData()  
@@ -10,15 +11,16 @@ export default function Projects(){
     const [projectInfo, setProjectInfo] = useState(initialProjects)
     
     function openBoard(id){
+        const project = projectInfo.find(p => p.id === id)
+        if (!project) return
         return navigate(`/boards/${id}`, {
-            projectId : id
+            state: {projectId: id, title: project.title}
         })
     }
 
     const handleCreateProject = async () => {
         const res = await axios.post('/api/newProject', {title: newTitle})
-        const newProject = res.data
-        setProjectInfo(prev => [...prev, newProject])
+        setProjectInfo(prev => [...prev, res.data])
         setNewTitle('');
         setShowForm(false);
     };
@@ -29,30 +31,44 @@ export default function Projects(){
     }
 
     return (
-        <>
-        {console.log(projectInfo)}
-        {projectInfo.map((project) => (<>
-            <button key={project.id} onClick={() => openBoard(project.id)}>
-            {project.title}
-            </button>
-            <button onClick={() => {deleteProject(project.id)}}>Delete Project</button><br></br>
-            </>
-        ))}
+                <div className="projects-page-container">
+                    <div className="projects-header">
+                        <h1>Your Projects</h1>
+                        {!showForm && (
+                            <button className="create-project-btn" onClick={() => setShowForm(true)}>
+                                Create New Project
+                            </button>
+                        )}
+                    </div>
+                    
+                    {showForm && (
+                        <div className="new-project-form">
+                            <input
+                                type="text"
+                                value={newTitle}
+                                placeholder="Enter your new project title..."
+                                onChange={(e) => setNewTitle(e.target.value)}
+                                autoFocus
+                            />
+                            <div className="form-buttons">
+                                <button className="create-btn" onClick={handleCreateProject}>Create</button>
+                                <button onClick={() => setShowForm(false)}>Cancel</button>
+                            </div>
+                        </div>
+                    )}
 
-        {showForm ? (
-            <div>
-            <input
-                type="text"
-                value={newTitle}
-                placeholder="Project title"
-                onChange={(e) => setNewTitle(e.target.value)}
-            />
-            <button onClick={handleCreateProject}>Create</button>
-            <button onClick={() => setShowForm(false)}>Cancel</button>
-            </div>
-        ) : (
-            <button onClick={() => setShowForm(true)}>New Project</button>
-        )}
-        </>
-    );
+                    <div className="projects-grid">
+                        {projectInfo.map((project) => (
+                            <div key={project.id} className="project-card project-card-clickable" onClick={() => openBoard(project.id)}>
+                                <div>
+                                    <h2>{project.title}</h2>
+                                </div>
+                                <button className="delete-project-btn" onClick={(e) => {e.stopPropagation(); deleteProject(project.id, e)}}>
+                                    Delete
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
 }

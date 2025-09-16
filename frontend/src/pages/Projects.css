@@ -1,0 +1,208 @@
+body {
+            background-color: #0d0c22; /* A deep, dark space blue */
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(120, 81, 255, 0.2), transparent 30%),
+                radial-gradient(circle at 85% 30%, rgba(0, 255, 231, 0.2), transparent 35%);
+            color: #e0e0e0;
+            font-family: 'Inter', 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- Main Page Container --- */
+        .projects-page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 24px;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Header & Title --- */
+        .projects-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .projects-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            /* Neon glow effect for the main title */
+            text-shadow:
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px #70f,
+                0 0 30px #70f,
+                0 0 40px #70f;
+        }
+
+        /* --- "Create New Project" Button --- */
+        .create-project-btn {
+            background: linear-gradient(90deg, #6a00ff, #00e0d8);
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(106, 0, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .create-project-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 25px rgba(0, 224, 216, 0.8);
+        }
+        
+        /* --- New Project Form --- */
+        .new-project-form {
+            background: rgba(13, 12, 34, 0.8);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(120, 81, 255, 0.3);
+            animation: slideDown 0.5s ease-out;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .new-project-form input {
+            flex-grow: 1;
+            background-color: #1c1a3e;
+            border: 1px solid #3c3a5e;
+            color: #e0e0e0;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .new-project-form input:focus {
+            outline: none;
+            border-color: #6a00ff;
+            box-shadow: 0 0 10px rgba(106, 0, 255, 0.5);
+        }
+
+        .form-buttons button {
+            background: #3c3a5e;
+            color: #e0e0e0;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 8px;
+        }
+
+        .form-buttons button.create-btn {
+            background: #6a00ff;
+            color: #fff;
+        }
+
+        .form-buttons button:hover {
+            filter: brightness(1.2);
+        }
+
+
+        /* --- Projects Grid --- */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 32px;
+        }
+
+        /* --- Project Card Styling --- */
+        .project-card {
+            position: relative;
+            background: rgba(23, 22, 49, 0.6);
+            border-radius: 12px;
+            padding: 24px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .project-card-clickable {
+             cursor: pointer;
+        }
+
+        /* Animated gradient border pseudo-element */
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: -1;
+            margin: -1px; /* Match the border width */
+            border-radius: inherit;
+            background: linear-gradient(120deg, #8a2be2, #00e0d8, #8a2be2);
+            background-size: 300% 300%;
+            animation: gradient-spin 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .project-card-clickable:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .project-card-clickable:hover::before {
+            opacity: 1; /* Show glowing border on hover */
+        }
+
+        @keyframes gradient-spin {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .project-card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 16px 0;
+        }
+
+        /* --- Delete Project Button --- */
+        .delete-project-btn {
+            background-color: rgba(255, 59, 48, 0.2);
+            border: 1px solid rgba(255, 59, 48, 0.5);
+            color: #ff6b6b;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            float: right; /* Position it nicely */
+        }
+
+        .delete-project-btn:hover {
+            background-color: rgba(255, 59, 48, 0.5);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+            transform: scale(1.05);
+        }
