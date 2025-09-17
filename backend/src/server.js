@@ -68,11 +68,13 @@ app.get('/api/boards/:id', async (req, res) => {
 app.post('/api/newBoard', async(req, res) => {
     const {title, project_id} = req.body
     const {rows} = await pool.query('insert into boards (title, project_id) values ($1, $2) returning *', [title, project_id])
+    console.log(rows[0]);
+    
     res.json(rows[0])
 })
 
-app.delete('/api/deleteBoard', async(req, res) => {
-    const {id} = req.body
+app.delete('/api/deleteBoard/:id', async(req, res) => {
+    const id = req.params.id
     await pool.query('delete from boards where id = $1', [id])
     res.sendStatus(200)
 })
@@ -85,15 +87,18 @@ app.post('/api/newCard', async(req, res)=>{
     );
     const position = parseInt(result.rows[0].count) + 1;
 
-    await pool.query(
-    'INSERT INTO elements (title, subtitle, board_id, position) VALUES ($1, $2, $3, $4)',
+    const {rows} = await pool.query(
+    'INSERT INTO elements (title, subtitle, board_id, position) VALUES ($1, $2, $3, $4) returning *',
     [cardTitle, cardSubTitle, boardId, position]
     );
+    console.log(rows[0]);
+    res.json(rows[0])
 })
 
-app.delete('/api/deleteCard', async(req, res) => {
-    const {id} = req.body
+app.delete('/api/deleteCard/:id', async(req, res) => {
+    const id = Number(req.params.id)
     await pool.query('delete from elements where id = $1', [id])
+    res.sendStatus(200)
 })
 
 app.listen(8000, (req, res) => {

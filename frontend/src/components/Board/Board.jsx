@@ -2,7 +2,7 @@ import './Board.css'
 import { useSortable, verticalListSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import axios from 'axios'
-import { useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import { Card } from '../Card/Card'
 
 export const Board = ({id, title, cards = [], onDelete}) => {
@@ -10,15 +10,44 @@ export const Board = ({id, title, cards = [], onDelete}) => {
     const [cardTitle, setCardTitle] = useState('')
     const [cardSubTitle, setCardSubTitle] = useState('')
     const [showForm, setShowForm] = useState(false)
+    const [cardData, setCardData] = useState(cards)
+
+    useEffect(() => {
+      setCardData(cards)
+    }, [cards])
 
     async function newCard(boardId) {
-      await axios.post('/api/newCard', {cardTitle, cardSubTitle, boardId})
+      const response = await axios.post('/api/newCard', {cardTitle, cardSubTitle, boardId})
+      setCardData(prev => [...prev, response.data])
+      setShowForm(false)
+      setCardTitle('')
+      setCardSubTitle('')
     }
+
+    const lastRemovedRef = useRef(null);
+
+    const handleDeleteCard = useCallback(async (cardId) => {
+      setCardData(prev => {
+        lastRemovedRef.current = prev.find(c => c.id === cardId) || null;
+        return prev.filter(c => c.id !== cardId);
+      });
+
+      try {
+        await axios.delete(`/api/deleteCard/${cardId}`); 
+      } catch (err) {
+        console.error('Delete failed', err);
+        setCardData(prev => {
+          const removed = lastRemovedRef.current;
+          return removed ? [...prev, removed] : prev;
+        });
+      } finally {
+        lastRemovedRef.current = null;
+      }
+    }, []);
+
     
     async function deleteTable(id) {  
-      await axios.delete('/api/deleteBoard', {
-      data: {id}
-    }), onDelete?.(id)
+      onDelete?.(id)
     }
 
     const style = {
@@ -38,8 +67,8 @@ return (
       
       {/* This container is crucial for vertical scrolling */}
       <div className="column-tasks">
-        <SortableContext items={cards.map(c => `task-${c.id}`)} strategy={verticalListSortingStrategy}>
-          {cards.map(c => <Card key={c.id} card={c} />)}
+        <SortableContext items={cardData.map(c => `task-${c.id}`)} strategy={verticalListSortingStrategy}>
+          {cardData.map(c => <Card key={c.id} card={c} onDeleteCard={handleDeleteCard}/>)}
         </SortableContext>
         
         {showForm ? (

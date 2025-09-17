@@ -12,6 +12,9 @@ const taskKey = (id) => `task-${id}`;
 export default function Boards() {
   const [boards, setBoards] = useState(useLoaderData() ?? []);
   const {id} = useParams()
+  const location = useLocation()
+  const state = location.state
+  const [projectTitle, setProjectTitle] = useState(state?.title ?? 'My Tasks')
 
 const onDragEnd = ({ active, over }) => {
   if (!over) return;
@@ -87,7 +90,7 @@ const onDragEnd = ({ active, over }) => {
    return (
     <div className="boards-page-container">
       <header className="boards-header">
-        <h1>My Tasks</h1>
+        <h1>{projectTitle}</h1>
       </header>
       <DndContext collisionDetection={closestCorners} onDragEnd={onDragEnd}>
         <Column boards={boards} id={id} />
@@ -95,12 +98,4 @@ const onDragEnd = ({ active, over }) => {
     </div>
   );
 
-  // return (
-  //   <div className="App">
-  //     <h1>My Tasks</h1>
-  //     <DndContext collisionDetection={closestCorners} onDragEnd={onDragEnd}>
-  //       <Column boards={boards} id={id} />
-  //     </DndContext>
-  //   </div>
-  // );
 }

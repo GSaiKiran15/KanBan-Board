@@ -15,13 +15,14 @@ export const Column = ({boards = [], id}) => {
       title, subtitle, parent_board_id: id, project_id: id
     })
     setBoardsData(prev => [...prev, response.data])
+    setSubTitle('')
     setShowForm(false)
   }
 
    const handleDeleteBoard = useCallback(async (boardId) => {
     setBoardsData(prev => prev.filter(b => b.id !== boardId));
     try {
-      await axios.delete('/api/deleteBoard', { data: { id: boardId } });
+      await axios.delete(`/api/deleteBoard/${boardId}`);
     } catch (err) {
       setBoardsData(prev => [...prev, boards.find(b => b.id === boardId)].filter(Boolean));
       console.error(err);

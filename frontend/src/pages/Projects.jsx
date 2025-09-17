@@ -33,7 +33,7 @@ export default function Projects(){
     return (
                 <div className="projects-page-container">
                     <div className="projects-header">
-                        <h1>Your Projects</h1>
+                        <h1>Projects</h1>
                         {!showForm && (
                             <button className="create-project-btn" onClick={() => setShowForm(true)}>
                                 Create New Project

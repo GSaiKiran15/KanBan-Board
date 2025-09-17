@@ -1,10 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable"
-import axios from "axios"
 import {CSS} from '@dnd-kit/utilities' 
 
-export const Card = ({card}) => {
+export const Card = ({card, onDeleteCard}) => {
     const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({ id: `task-${card.id}`, data: { type:'task', taskId: card.id, columnId: card.board_id } });
-
 
     const style = {
             transition,
@@ -13,7 +11,7 @@ export const Card = ({card}) => {
         }
 
     async function deleteCard(id){
-        await axios.delete('/api/deleteCard', {data: {id}})
+        onDeleteCard?.(id)
     }
 
  return (
