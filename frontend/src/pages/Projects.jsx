@@ -2,6 +2,9 @@ import {useLoaderData, useNavigate} from 'react-router-dom'
 import { useState } from 'react';
 import axios from "axios"
 import './Projects.css'
+import useUser from '../hooks/useUser';
+import { signOut } from 'firebase/auth';
+import { auth } from '../lib/firebaseClient';
 
 export default function Projects(){
     const initialProjects = useLoaderData()  
@@ -9,6 +12,7 @@ export default function Projects(){
     const [showForm, setShowForm] = useState(false);
     const [newTitle, setNewTitle] = useState('');
     const [projectInfo, setProjectInfo] = useState(initialProjects)
+    const {isLoading, user} = useUser()
     
     function openBoard(id){
         const project = projectInfo.find(p => p.id === id)
@@ -33,7 +37,8 @@ export default function Projects(){
     return (
                 <div className="projects-page-container">
                     <div className="projects-header">
-                        <h1>Projects</h1>
+                        <h1 className='boom'>Projects</h1>
+                        <button className='create-project-btn' onClick={() => signOut(auth)}>Sign Out</button>
                         {!showForm && (
                             <button className="create-project-btn" onClick={() => setShowForm(true)}>
                                 Create New Project
