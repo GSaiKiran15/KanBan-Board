@@ -21,7 +21,6 @@ export const Board = ({ id, title, cards = [], onDelete, onAddCard }) => {
     setCardData(cards);
   }, [cards]);
 
-  // in Board.jsx
   async function newCard() {
     await onAddCard?.(id, { title: cardTitle, subtitle: cardSubTitle });
     setShowForm(false);
@@ -92,7 +91,12 @@ export const Board = ({ id, title, cards = [], onDelete, onAddCard }) => {
           strategy={verticalListSortingStrategy}
         >
           {cardData.map((c) => (
-            <Card key={c.id} card={c} onDeleteCard={handleDeleteCard} />
+            <Card
+              key={c.id}
+              card={c}
+              columnId={id}
+              onDeleteCard={handleDeleteCard}
+            />
           ))}
         </SortableContext>
 

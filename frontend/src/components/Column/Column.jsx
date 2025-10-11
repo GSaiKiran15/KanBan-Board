@@ -5,13 +5,14 @@ import {
 } from "@dnd-kit/sortable";
 import { Board } from "../Board/Board";
 import axios from "axios";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 export const Column = ({ boards = [], id }) => {
   const [title, setTitle] = useState("");
   const [subtitle, setSubTitle] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [boardsData, setBoardsData] = useState(boards);
+  useEffect(() => setBoardsData(boards), [boards]);
 
   async function addBoard(id) {
     const response = await axios.post("/api/newBoard", {
@@ -61,6 +62,7 @@ export const Column = ({ boards = [], id }) => {
       >
         {boardsData.map((b) => (
           <Board
+            key={b.id}
             id={b.id}
             title={b.title}
             cards={b.items ?? []}
