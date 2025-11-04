@@ -35,7 +35,6 @@ export const Board = ({ id, title, cards = [], onDelete, onAddCard }) => {
       lastRemovedRef.current = prev.find((c) => c.id === cardId) || null;
       return prev.filter((c) => c.id !== cardId);
     });
-
     try {
       await axios.delete(`/api/deleteCard/${cardId}`);
     } catch (err) {
@@ -48,6 +47,13 @@ export const Board = ({ id, title, cards = [], onDelete, onAddCard }) => {
       lastRemovedRef.current = null;
     }
   }, []);
+
+  const handleEditCard = async (cardId, editedTitle) => {
+    setCardData(prevCards => 
+      prevCards.map(c => 
+      c.id === cardId ? {...c, title: editedTitle, subtitle: ""} : c
+    ))
+  }
 
   async function deleteTable(id) {
     onDelete?.(id);

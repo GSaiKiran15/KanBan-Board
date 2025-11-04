@@ -33,18 +33,6 @@ body {
             gap: 20px;
         }
 
-        .projects-header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #ffffff;
-            /* Neon glow effect for the main title */
-            text-shadow:
-                0 0 5px #fff,
-                0 0 10px #fff,
-                0 0 20px #70f,
-                0 0 30px #70f,
-                0 0 40px #70f;
-        }
 
         /* --- "Create New Project" Button --- */
         .create-project-btn {

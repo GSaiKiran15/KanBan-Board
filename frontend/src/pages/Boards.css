@@ -32,19 +32,6 @@ body {
             padding: 24px 0;
             flex-shrink: 0; /* Prevent header from shrinking */
         }
-
-        .boards-header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin: 0;
-            text-shadow:
-                0 0 5px #fff,
-                0 0 10px #fff,
-                0 0 20px #00e0d8,
-                0 0 30px #00e0d8,
-                0 0 40px #00e0d8;
-        }
         
         /* --- Kanban Board (Columns Container) --- */
         .kanban-board {
