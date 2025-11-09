@@ -19,8 +19,8 @@ export const Card = ({ card, columnId, onDeleteCard, onEditCard}) => {
     transition,
     isDragging,
   } = useSortable({
-    id: `task-${card.id}`, // must match Board's SortableContext items
-    data: { type: "task", taskId: card.id, columnId }, // explicit columnId
+    id: `task-${card.id}`, 
+    data: { type: "task", taskId: card.id, columnId }, 
   });
 
   const style = {
@@ -29,7 +29,6 @@ export const Card = ({ card, columnId, onDeleteCard, onEditCard}) => {
     opacity: isDragging ? 0.7 : 1,
   };
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -53,29 +52,16 @@ export const Card = ({ card, columnId, onDeleteCard, onEditCard}) => {
     setShowMenu(!showMenu);
   };
 
-  const handleDuplicate = (e) => {
-    e.stopPropagation();
-    setShowMenu(false);
-    // Add your duplicate logic here
-    console.log("Duplicate card:", card.id);
-  };
-
-  // async function newCard() {
-  //   await onAddCard?.(id, { title: cardTitle, subtitle: cardSubTitle });
-  //   setShowForm(false);
-  //   setCardTitle("");
-  //   setCardSubTitle("");
-  // }
    const handleDone = (e) => {
     e.stopPropagation();
-    if (!editedTitle.trim()) return; // don’t save empty titles
+    if (!editedTitle.trim()) return; 
     onEditCard?.(card.id, editedTitle);
     setIsEditing(false);
   };
 
   const handleCancel = (e) => {
     e.stopPropagation();
-    setEditedTitle(card.title); // reset to original
+    setEditedTitle(card.title); 
     setIsEditing(false);
   };
 
@@ -125,17 +111,13 @@ export const Card = ({ card, columnId, onDeleteCard, onEditCard}) => {
           </button>
           {showMenu && (
             <div ref={menuRef} className="context-menu">
-              <button className="menu-item" onClick={(e) => {
+              <button className="menu-item" onPointerDown={(e) => {
                 e.stopPropagation()
                 setShowMenu(false)
                 setIsEditing(true)
                 }}>
                 <span className="menu-icon">✏️</span>
                 Edit
-              </button>
-              <button className="menu-item" onClick={handleDuplicate}>
-                <span className="menu-icon">📋</span>
-                Duplicate
               </button>
               <button
                 className="menu-item"

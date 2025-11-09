@@ -103,6 +103,16 @@ app.post("/api/newCard", async (req, res) => {
   res.json(rows[0]);
 });
 
+app.patch("/api/editCard/:id", async (req, res) => {
+  const cardId = req.params.id;
+  const { editedTitle, editedSubTitle } = req.body;
+  const { rows } = await pool.query(
+    "update elements set title=$1 where id=$2 returning id, title",
+    [editedTitle, cardId]
+  );
+  res.sendStatus(200);
+});
+
 app.delete("/api/deleteCard/:id", async (req, res) => {
   const id = Number(req.params.id);
   await pool.query("delete from elements where id = $1", [id]);

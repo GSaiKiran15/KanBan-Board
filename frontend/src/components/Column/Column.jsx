@@ -14,7 +14,7 @@ export const Column = ({ boards = [], id }) => {
   const [boardsData, setBoardsData] = useState(boards);
   useEffect(() => setBoardsData(boards), [boards]);
 
-  async function addBoard(id) {
+  async function handleAddBoard(id) {
     const response = await axios.post("/api/newBoard", {
       title,
       subtitle,
@@ -54,6 +54,101 @@ export const Column = ({ boards = [], id }) => {
     );
   };
 
+  const handleDeleteCard = async (cardId) => {
+    const boardWithCard = boardsData.find((board) =>
+      board.items?.some((card) => card.id === cardId)
+    );
+
+    if (!boardWithCard) return;
+
+    // Update state immediately (optimistic update)
+    setBoardsData((prev) =>
+      prev.map((board) =>
+        board.id === boardWithCard.id
+          ? {
+              ...board,
+              items: board.items.filter((card) => card.id !== cardId),
+            }
+          : board
+      )
+    );
+
+    try {
+      // Make API call to delete from database
+      await axios.delete(`/api/deleteCard/${cardId}`);
+    } catch (err) {
+      console.error("Delete failed", err);
+      // Revert the state change on error
+      setBoardsData((prev) =>
+        prev.map((board) =>
+          board.id === boardWithCard.id
+            ? {
+                ...board,
+                items: [
+                  ...(board.items || []),
+                  boardsData
+                    .find((b) => b.id === boardWithCard.id)
+                    ?.items?.find((c) => c.id === cardId),
+                ].filter(Boolean),
+              }
+            : board
+        )
+      );
+    }
+  };
+
+  const handleEditCard = async (cardId, editedTitle) => {
+    // Find which board contains this card
+    const boardWithCard = boardsData.find((board) =>
+      board.items?.some((card) => card.id === cardId)
+    );
+
+    if (!boardWithCard) return;
+
+    // Update state immediately (optimistic update)
+    setBoardsData((prev) =>
+      prev.map((board) =>
+        board.id === boardWithCard.id
+          ? {
+              ...board,
+              items: board.items.map((card) =>
+                card.id === cardId ? { ...card, title: editedTitle } : card
+              ),
+            }
+          : board
+      )
+    );
+
+    try {
+      // Make API call to update in database
+      await axios.patch(`/api/editCard/${cardId}`, { editedTitle });
+    } catch (err) {
+      console.error("Edit failed", err);
+      // Revert the state change on error
+      setBoardsData((prev) =>
+        prev.map((board) =>
+          board.id === boardWithCard.id
+            ? {
+                ...board,
+                items: board.items.map((card) =>
+                  card.id === cardId
+                    ? {
+                        ...card,
+                        title:
+                          boardsData
+                            .find((b) => b.id === boardWithCard.id)
+                            ?.items?.find((c) => c.id === cardId)?.title ||
+                          card.title,
+                      }
+                    : card
+                ),
+              }
+            : board
+        )
+      );
+    }
+  };
+
   return (
     <div className="kanban-board">
       <SortableContext
@@ -68,6 +163,8 @@ export const Column = ({ boards = [], id }) => {
             cards={b.items ?? []}
             onDelete={handleDeleteBoard}
             onAddCard={handleAddCard}
+            onDeleteCard={handleDeleteCard}
+            onEditCard={handleEditCard}
           />
         ))}
       </SortableContext>
@@ -82,7 +179,10 @@ export const Column = ({ boards = [], id }) => {
             onChange={(e) => setTitle(e.target.value)}
           />
           <div className="form-actions">
-            <button className="add-btn-primary" onClick={() => addBoard(id)}>
+            <button
+              className="add-btn-primary"
+              onClick={() => handleAddBoard(id)}
+            >
               Add List
             </button>
             <button

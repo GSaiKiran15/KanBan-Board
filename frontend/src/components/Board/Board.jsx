@@ -5,11 +5,10 @@ import {
   SortableContext,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import axios from "axios";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card } from "../Card/Card";
 
-export const Board = ({ id, title, cards = [], onDelete, onAddCard }) => {
+export const Board = ({ id, title, cards = [], onDelete, onAddCard, onDeleteCard, onEditCard }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: `col-${id}`, data: { type: "column", columnId: id } });
   const [cardTitle, setCardTitle] = useState("");
@@ -28,32 +27,19 @@ export const Board = ({ id, title, cards = [], onDelete, onAddCard }) => {
     setCardSubTitle("");
   }
 
-  const lastRemovedRef = useRef(null);
-
   const handleDeleteCard = useCallback(async (cardId) => {
-    setCardData((prev) => {
-      lastRemovedRef.current = prev.find((c) => c.id === cardId) || null;
-      return prev.filter((c) => c.id !== cardId);
-    });
-    try {
-      await axios.delete(`/api/deleteCard/${cardId}`);
-    } catch (err) {
-      console.error("Delete failed", err);
-      setCardData((prev) => {
-        const removed = lastRemovedRef.current;
-        return removed ? [...prev, removed] : prev;
-      });
-    } finally {
-      lastRemovedRef.current = null;
-    }
-  }, []);
+    setCardData(prev => prev.filter(c => c.id !== cardId));
+    onDeleteCard?.(cardId); 
+}, [onDeleteCard])
 
-  const handleEditCard = async (cardId, editedTitle) => {
-    setCardData(prevCards => 
-      prevCards.map(c => 
-      c.id === cardId ? {...c, title: editedTitle, subtitle: ""} : c
-    ))
-  }
+const handleEditCard = useCallback(async (cardId, editedTitle) => {  
+  setCardData(prev => 
+    prev.map(c => 
+      c.id === cardId ? { ...c, title: editedTitle } : c
+    )
+  );
+  onEditCard?.(cardId, editedTitle); 
+}, [onEditCard])
 
   async function deleteTable(id) {
     onDelete?.(id);
@@ -102,6 +88,7 @@ export const Board = ({ id, title, cards = [], onDelete, onAddCard }) => {
               card={c}
               columnId={id}
               onDeleteCard={handleDeleteCard}
+              onEditCard={handleEditCard}
             />
           ))}
         </SortableContext>
