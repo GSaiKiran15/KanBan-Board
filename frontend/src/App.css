@@ -8,18 +8,28 @@
   margin-top: 10px;
   max-width: none;
   padding: 0;
+  
 }
 
 * {
   box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
 }
+
 html,
 body {
+  margin: 0;
+  background: #f6f7f9;
+  font-family: "Montserrat", sans-serif !important;
   height: 100%;
 }
 body {
   margin: 0;
   background: #f6f7f9;
+   font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .boards-page-container {
@@ -40,6 +50,12 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.momo-trust-display-regular {
+  font-family: "Momo Trust Display", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .boards-header {
