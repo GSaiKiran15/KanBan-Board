@@ -119,6 +119,18 @@ app.delete("/api/deleteCard/:id", async (req, res) => {
   res.sendStatus(200);
 });
 
+app.patch("/api/moveCard/:id", async (req, res) => {
+  const cardId = req.params.id;
+  const { board_id } = req.body;
+  
+  const { rows } = await pool.query(
+    "UPDATE elements SET board_id = $1 WHERE id = $2 RETURNING *",
+    [board_id, cardId]
+  );
+  
+  res.json(rows[0]);
+});
+
 app.listen(8000, (req, res) => {
   console.log("Server is running on PORT 8000.");
 });

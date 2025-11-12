@@ -8,14 +8,23 @@ import { CSS } from "@dnd-kit/utilities";
 import { useCallback, useEffect, useState } from "react";
 import { Card } from "../Card/Card";
 
-export const Board = ({ id, title, cards = [], onDelete, onAddCard, onDeleteCard, onEditCard }) => {
+export const Board = ({
+  id,
+  title,
+  cards = [],
+  onDelete,
+  onAddCard,
+  onDeleteCard,
+  onEditCard,
+  onMoveCard,
+  allBoards,
+}) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: `col-${id}`, data: { type: "column", columnId: id } });
   const [cardTitle, setCardTitle] = useState("");
   const [cardSubTitle, setCardSubTitle] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [cardData, setCardData] = useState(cards);
-
   useEffect(() => {
     setCardData(cards);
   }, [cards]);
@@ -27,19 +36,23 @@ export const Board = ({ id, title, cards = [], onDelete, onAddCard, onDeleteCard
     setCardSubTitle("");
   }
 
-  const handleDeleteCard = useCallback(async (cardId) => {
-    setCardData(prev => prev.filter(c => c.id !== cardId));
-    onDeleteCard?.(cardId); 
-}, [onDeleteCard])
-
-const handleEditCard = useCallback(async (cardId, editedTitle) => {  
-  setCardData(prev => 
-    prev.map(c => 
-      c.id === cardId ? { ...c, title: editedTitle } : c
-    )
+  const handleDeleteCard = useCallback(
+    async (cardId) => {
+      setCardData((prev) => prev.filter((c) => c.id !== cardId));
+      onDeleteCard?.(cardId);
+    },
+    [onDeleteCard]
   );
-  onEditCard?.(cardId, editedTitle); 
-}, [onEditCard])
+
+  const handleEditCard = useCallback(
+    async (cardId, editedTitle) => {
+      setCardData((prev) =>
+        prev.map((c) => (c.id === cardId ? { ...c, title: editedTitle } : c))
+      );
+      onEditCard?.(cardId, editedTitle);
+    },
+    [onEditCard]
+  );
 
   async function deleteTable(id) {
     onDelete?.(id);
@@ -49,6 +62,13 @@ const handleEditCard = useCallback(async (cardId, editedTitle) => {
     transition,
     transform: CSS.Transform.toString(transform),
   };
+
+  const handleMoveCard = useCallback(
+    async (cardId, moveId) => {
+      onMoveCard?.(cardId, moveId);
+    },
+    [onMoveCard]
+  );
 
   return (
     <div ref={setNodeRef} style={style} className="kanban-column">
@@ -87,8 +107,11 @@ const handleEditCard = useCallback(async (cardId, editedTitle) => {
               key={c.id}
               card={c}
               columnId={id}
+              boards={allBoards}
               onDeleteCard={handleDeleteCard}
               onEditCard={handleEditCard}
+              onMoveCard={handleMoveCard}
+              allBoards={allBoards}
             />
           ))}
         </SortableContext>

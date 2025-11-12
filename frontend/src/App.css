@@ -106,7 +106,7 @@ body {
   background: rgba(23, 22, 49, 0.6);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); */
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   max-height: 100%;
 }

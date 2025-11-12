@@ -55,7 +55,7 @@
   background: rgba(13, 12, 34, 0.95);
   border: 1px solid #3c3a5e;
   border-radius: 8px;
-  backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); */
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   z-index: 1000;
   min-width: 140px;

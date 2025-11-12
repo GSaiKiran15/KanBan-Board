@@ -12,6 +12,7 @@ export const Column = ({ boards = [], id }) => {
   const [subtitle, setSubTitle] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [boardsData, setBoardsData] = useState(boards);
+  const allBoards = boardsData.map((board) => [board.title, board.id]);
   useEffect(() => setBoardsData(boards), [boards]);
 
   async function handleAddBoard(id) {
@@ -149,6 +150,70 @@ export const Column = ({ boards = [], id }) => {
     }
   };
 
+  const handleMoveCard = async (cardId, moveId) => {
+    // Find which board currently contains this card
+    const sourceBoardWithCard = boardsData.find((board) =>
+      board.items?.some((card) => card.id === cardId)
+    );
+
+    if (!sourceBoardWithCard) return;
+
+    // Find the card to move
+    const cardToMove = sourceBoardWithCard.items.find(
+      (card) => card.id === cardId
+    );
+    if (!cardToMove) return;
+
+    // Update state immediately (optimistic update)
+    setBoardsData((prev) =>
+      prev.map((board) => {
+        if (board.id === sourceBoardWithCard.id) {
+          // Remove card from source board
+          return {
+            ...board,
+            items: board.items.filter((card) => card.id !== cardId),
+          };
+        } else if (board.id === moveId) {
+          // Add card to destination board
+          return {
+            ...board,
+            items: [
+              ...(board.items || []),
+              { ...cardToMove, board_id: moveId },
+            ],
+          };
+        }
+        return board;
+      })
+    );
+
+    try {
+      // Make API call to update card's board_id in database
+      await axios.patch(`/api/moveCard/${cardId}`, { board_id: moveId });
+    } catch (err) {
+      console.error("Move failed", err);
+      // Revert the state change on error
+      setBoardsData((prev) =>
+        prev.map((board) => {
+          if (board.id === moveId) {
+            // Remove card from destination board (revert)
+            return {
+              ...board,
+              items: board.items.filter((card) => card.id !== cardId),
+            };
+          } else if (board.id === sourceBoardWithCard.id) {
+            // Add card back to source board (revert)
+            return {
+              ...board,
+              items: [...(board.items || []), cardToMove],
+            };
+          }
+          return board;
+        })
+      );
+    }
+  };
+
   return (
     <div className="kanban-board">
       <SortableContext
@@ -165,6 +230,8 @@ export const Column = ({ boards = [], id }) => {
             onAddCard={handleAddCard}
             onDeleteCard={handleDeleteCard}
             onEditCard={handleEditCard}
+            onMoveCard={handleMoveCard}
+            allBoards={allBoards}
           />
         ))}
       </SortableContext>
