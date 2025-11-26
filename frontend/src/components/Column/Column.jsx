@@ -5,234 +5,31 @@ import {
 } from "@dnd-kit/sortable";
 import { Board } from "../Board/Board";
 import axios from "axios";
-import { useState, useCallback, useEffect } from "react";
+import { useState } from "react";
+import { useBoardContext } from "../../contexts/BoardContext";
 
-export const Column = ({ boards = [], id }) => {
+export const Column = ({ id }) => {
   const [title, setTitle] = useState("");
-  const [subtitle, setSubTitle] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [boardsData, setBoardsData] = useState(boards);
-  const allBoards = boardsData.map((board) => [board.title, board.id]);
-  useEffect(() => setBoardsData(boards), [boards]);
-
+  const { boards, setBoards } = useBoardContext();
   async function handleAddBoard(id) {
     const response = await axios.post("/api/newBoard", {
       title,
-      subtitle,
       parent_board_id: id,
       project_id: id,
     });
-    setBoardsData((prev) => [...prev, response.data]);
-    setSubTitle("");
+    setBoards((prev) => [...prev, response.data]);
     setShowForm(false);
   }
-
-  const handleDeleteBoard = useCallback(
-    async (boardId) => {
-      setBoardsData((prev) => prev.filter((b) => b.id !== boardId));
-      try {
-        await axios.delete(`/api/deleteBoard/${boardId}`);
-      } catch (err) {
-        setBoardsData((prev) =>
-          [...prev, boards.find((b) => b.id === boardId)].filter(Boolean)
-        );
-        console.error(err);
-      }
-    },
-    [boards]
-  );
-
-  const handleAddCard = async (boardId, { title, subtitle }) => {
-    const { data: newCard } = await axios.post("/api/newCard", {
-      cardTitle: title,
-      cardSubTitle: subtitle,
-      boardId,
-    });
-    setBoardsData((prev) =>
-      prev.map((b) =>
-        b.id === boardId ? { ...b, items: [...(b.items ?? []), newCard] } : b
-      )
-    );
-  };
-
-  const handleDeleteCard = async (cardId) => {
-    const boardWithCard = boardsData.find((board) =>
-      board.items?.some((card) => card.id === cardId)
-    );
-
-    if (!boardWithCard) return;
-
-    // Update state immediately (optimistic update)
-    setBoardsData((prev) =>
-      prev.map((board) =>
-        board.id === boardWithCard.id
-          ? {
-              ...board,
-              items: board.items.filter((card) => card.id !== cardId),
-            }
-          : board
-      )
-    );
-
-    try {
-      // Make API call to delete from database
-      await axios.delete(`/api/deleteCard/${cardId}`);
-    } catch (err) {
-      console.error("Delete failed", err);
-      // Revert the state change on error
-      setBoardsData((prev) =>
-        prev.map((board) =>
-          board.id === boardWithCard.id
-            ? {
-                ...board,
-                items: [
-                  ...(board.items || []),
-                  boardsData
-                    .find((b) => b.id === boardWithCard.id)
-                    ?.items?.find((c) => c.id === cardId),
-                ].filter(Boolean),
-              }
-            : board
-        )
-      );
-    }
-  };
-
-  const handleEditCard = async (cardId, editedTitle) => {
-    // Find which board contains this card
-    const boardWithCard = boardsData.find((board) =>
-      board.items?.some((card) => card.id === cardId)
-    );
-
-    if (!boardWithCard) return;
-
-    // Update state immediately (optimistic update)
-    setBoardsData((prev) =>
-      prev.map((board) =>
-        board.id === boardWithCard.id
-          ? {
-              ...board,
-              items: board.items.map((card) =>
-                card.id === cardId ? { ...card, title: editedTitle } : card
-              ),
-            }
-          : board
-      )
-    );
-
-    try {
-      // Make API call to update in database
-      await axios.patch(`/api/editCard/${cardId}`, { editedTitle });
-    } catch (err) {
-      console.error("Edit failed", err);
-      // Revert the state change on error
-      setBoardsData((prev) =>
-        prev.map((board) =>
-          board.id === boardWithCard.id
-            ? {
-                ...board,
-                items: board.items.map((card) =>
-                  card.id === cardId
-                    ? {
-                        ...card,
-                        title:
-                          boardsData
-                            .find((b) => b.id === boardWithCard.id)
-                            ?.items?.find((c) => c.id === cardId)?.title ||
-                          card.title,
-                      }
-                    : card
-                ),
-              }
-            : board
-        )
-      );
-    }
-  };
-
-  const handleMoveCard = async (cardId, moveId) => {
-    // Find which board currently contains this card
-    const sourceBoardWithCard = boardsData.find((board) =>
-      board.items?.some((card) => card.id === cardId)
-    );
-
-    if (!sourceBoardWithCard) return;
-
-    // Find the card to move
-    const cardToMove = sourceBoardWithCard.items.find(
-      (card) => card.id === cardId
-    );
-    if (!cardToMove) return;
-
-    // Update state immediately (optimistic update)
-    setBoardsData((prev) =>
-      prev.map((board) => {
-        if (board.id === sourceBoardWithCard.id) {
-          // Remove card from source board
-          return {
-            ...board,
-            items: board.items.filter((card) => card.id !== cardId),
-          };
-        } else if (board.id === moveId) {
-          // Add card to destination board
-          return {
-            ...board,
-            items: [
-              ...(board.items || []),
-              { ...cardToMove, board_id: moveId },
-            ],
-          };
-        }
-        return board;
-      })
-    );
-
-    try {
-      // Make API call to update card's board_id in database
-      await axios.patch(`/api/moveCard/${cardId}`, { board_id: moveId });
-    } catch (err) {
-      console.error("Move failed", err);
-      // Revert the state change on error
-      setBoardsData((prev) =>
-        prev.map((board) => {
-          if (board.id === moveId) {
-            // Remove card from destination board (revert)
-            return {
-              ...board,
-              items: board.items.filter((card) => card.id !== cardId),
-            };
-          } else if (board.id === sourceBoardWithCard.id) {
-            // Add card back to source board (revert)
-            return {
-              ...board,
-              items: [...(board.items || []), cardToMove],
-            };
-          }
-          return board;
-        })
-      );
-    }
-  };
 
   return (
     <div className="kanban-board">
       <SortableContext
-        items={boardsData.map((b) => `col-${b.id}`)}
+        items={boards.map((b) => `col-${b.id}`)}
         strategy={horizontalListSortingStrategy}
       >
-        {boardsData.map((b) => (
-          <Board
-            key={b.id}
-            id={b.id}
-            title={b.title}
-            cards={b.items ?? []}
-            onDelete={handleDeleteBoard}
-            onAddCard={handleAddCard}
-            onDeleteCard={handleDeleteCard}
-            onEditCard={handleEditCard}
-            onMoveCard={handleMoveCard}
-            allBoards={allBoards}
-          />
+        {boards.map((b) => (
+          <Board key={b.id} id={b.id} title={b.title} cards={b.items ?? []} />
         ))}
       </SortableContext>
 

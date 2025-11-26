@@ -5,70 +5,23 @@ import {
   SortableContext,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Card } from "../Card/Card";
+import { useBoardContext } from "../../contexts/BoardContext";
+import axios from "axios";
 
-export const Board = ({
-  id,
-  title,
-  cards = [],
-  onDelete,
-  onAddCard,
-  onDeleteCard,
-  onEditCard,
-  onMoveCard,
-  allBoards,
-}) => {
+export const Board = ({ id, title, cards = [] }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: `col-${id}`, data: { type: "column", columnId: id } });
   const [cardTitle, setCardTitle] = useState("");
   const [cardSubTitle, setCardSubTitle] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [cardData, setCardData] = useState(cards);
-  useEffect(() => {
-    setCardData(cards);
-  }, [cards]);
-
-  async function newCard() {
-    await onAddCard?.(id, { title: cardTitle, subtitle: cardSubTitle });
-    setShowForm(false);
-    setCardTitle("");
-    setCardSubTitle("");
-  }
-
-  const handleDeleteCard = useCallback(
-    async (cardId) => {
-      setCardData((prev) => prev.filter((c) => c.id !== cardId));
-      onDeleteCard?.(cardId);
-    },
-    [onDeleteCard]
-  );
-
-  const handleEditCard = useCallback(
-    async (cardId, editedTitle) => {
-      setCardData((prev) =>
-        prev.map((c) => (c.id === cardId ? { ...c, title: editedTitle } : c))
-      );
-      onEditCard?.(cardId, editedTitle);
-    },
-    [onEditCard]
-  );
-
-  async function deleteTable(id) {
-    onDelete?.(id);
-  }
+  const { boards, setBoards } = useBoardContext();
 
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),
   };
-
-  const handleMoveCard = useCallback(
-    async (cardId, moveId) => {
-      onMoveCard?.(cardId, moveId);
-    },
-    [onMoveCard]
-  );
 
   return (
     <div ref={setNodeRef} style={style} className="kanban-column">
@@ -76,10 +29,16 @@ export const Board = ({
         <span>{title}</span>
         <div>
           <button
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
+            onPointerDown={async (e) => {
               e.stopPropagation();
-              deleteTable(id);
+              setBoards((prevBoards) =>
+                prevBoards.filter((board) => board.id !== id)
+              );
+              try {
+                await axios.delete(`/api/deleteBoard/${id}`);
+              } catch (error) {
+                console.log(error);
+              }
             }}
             className="delete-btn"
           >
@@ -96,23 +55,13 @@ export const Board = ({
         </div>
       </div>
 
-      {/* This container is crucial for vertical scrolling */}
       <div className="column-tasks">
         <SortableContext
-          items={cardData.map((c) => `task-${c.id}`)}
+          items={cards.map((c) => `task-${c.id}`)}
           strategy={verticalListSortingStrategy}
         >
-          {cardData.map((c) => (
-            <Card
-              key={c.id}
-              card={c}
-              columnId={id}
-              boards={allBoards}
-              onDeleteCard={handleDeleteCard}
-              onEditCard={handleEditCard}
-              onMoveCard={handleMoveCard}
-              allBoards={allBoards}
-            />
+          {cards.map((c) => (
+            <Card key={c.id} card={c} columnId={id} />
           ))}
         </SortableContext>
 
@@ -126,7 +75,38 @@ export const Board = ({
             />
 
             <div className="form-actions">
-              <button className="add-btn-primary" onClick={() => newCard(id)}>
+              <button
+                className="add-btn-primary"
+                onClick={async () => {
+                  if (!cardTitle.trim()) return;
+                  try {
+                    const response = await axios.post("/api/newCard", {
+                      cardTitle,
+                      cardSubTitle,
+                      boardId: id,
+                    });
+
+                    const realCard = response.data;
+
+                    setBoards((prevBoards) =>
+                      prevBoards.map((board) =>
+                        board.id === id
+                          ? {
+                              ...board,
+                              items: [...(board.items ?? []), realCard],
+                            }
+                          : board
+                      )
+                    );
+
+                    setShowForm(false);
+                    setCardTitle("");
+                    setCardSubTitle("");
+                  } catch (error) {
+                    console.log(error);
+                  }
+                }}
+              >
                 Add Card
               </button>
               <button

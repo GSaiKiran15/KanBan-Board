@@ -3,22 +3,18 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState, useRef, useEffect } from "react";
 import "./Card.css";
+import { useBoardContext } from "../../contexts/BoardContext";
+import axios from "axios";
 
-export const Card = ({
-  card,
-  columnId,
-  onDeleteCard,
-  onEditCard,
-  allBoards,
-  onMoveCard
-}) => {
+export const Card = ({ card, columnId }) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const [editedTitle, setEditedTitle] = useState(card.title);
-
+  const { boards, setBoards } = useBoardContext();
+  const allBoards = boards.map((board) => [board.title, board.id]);
   const {
     attributes,
     listeners,
@@ -60,10 +56,22 @@ export const Card = ({
     setShowMenu(!showMenu);
   };
 
-  const handleDone = (e) => {
+  const handleDone = async (e) => {
     e.stopPropagation();
     if (!editedTitle.trim()) return;
-    onEditCard?.(card.id, editedTitle);
+    setBoards((prevBoards) =>
+      prevBoards.map((board) => ({
+        ...board,
+        items: board.items.map((item) =>
+          item.id === card.id ? { ...item, title: editedTitle } : item
+        ),
+      }))
+    );
+    try {
+      await axios.patch(`/api/editCard/${card.id}`, { editedTitle });
+    } catch (error) {
+      console.log(error);
+    }
     setIsEditing(false);
   };
 
@@ -131,6 +139,7 @@ export const Card = ({
                     className="menu-item"
                     onPointerDown={(e) => {
                       e.stopPropagation();
+                      console.log(boards);
                       setIsMoving(true);
                     }}
                   >
@@ -139,10 +148,22 @@ export const Card = ({
                   </button>
                   <button
                     className="menu-item"
-                    onPointerDown={(e) => {
+                    onPointerDown={async (e) => {
                       e.stopPropagation();
                       setShowMenu(false);
-                      onDeleteCard?.(card.id);
+                      setBoards((prevBoards) =>
+                        prevBoards.map((board) => ({
+                          ...board,
+                          items: board.items.filter(
+                            (item) => item.id !== card.id
+                          ),
+                        }))
+                      );
+                      try {
+                        await axios.delete(`/api/deleteCard/${card.id}`);
+                      } catch (error) {
+                        console.log("Failed to delete card", error);
+                      }
                     }}
                   >
                     <span className="menu-icon">🗑️</span>
@@ -163,20 +184,46 @@ export const Card = ({
                     Back
                   </button>
                   {allBoards
-                  .filter(board => board[1] !== columnId)
+                    .filter((board) => board[1] !== columnId)
                     .map((board) => (
                       <button
                         key={board[1]}
                         className="menu-item"
-                        onPointerDown={(e) => {
+                        onPointerDown={async (e) => {
                           e.stopPropagation();
-                          if (!board[1]) {return}
-                          onMoveCard?.(card.id, board[1]);
+                          if (!board[1]) {
+                            return;
+                          }
+                          setBoards((prevBoards) =>
+                            prevBoards.map((b) => {
+                              // If this is the board we're moving TO
+                              if (b.id === board[1]) {
+                                return {
+                                  ...b,
+                                  items: [
+                                    ...b.items,
+                                    { ...card, board_id: board[1] },
+                                  ], // Add card
+                                };
+                              }
+                              // For all other boards, remove the card if it exists
+                              return {
+                                ...b,
+                                items: b.items.filter(
+                                  (item) => item.id !== card.id
+                                ), // Remove card
+                              };
+                            })
+                          );
+                          try {
+                            await axios.patch(`/api/moveCard/${card.id}`, {
+                              board_id: board[1],
+                            });
+                          } catch (error) {
+                            console.log("Failed to move card", error);
+                          }
                           setShowMenu(false);
                           setIsMoving(false);
-                          console.log(
-                            `Moving card ${card.id} to board ${board[1]}`
-                          );
                         }}
                       >
                         <span className="menu-icon">📋</span>

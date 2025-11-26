@@ -5,12 +5,14 @@ import { closestCorners, DndContext } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Column } from "../components/Column/Column";
 import "./Boards.css";
+import BoardContext from "../contexts/BoardContext";
 
 const colKey = (id) => `col-${id}`;
 const taskKey = (id) => `task-${id}`;
 
 export default function Boards() {
   const [boards, setBoards] = useState(useLoaderData() ?? []);
+  console.log(boards);
   const { id } = useParams();
   const location = useLocation();
   const state = location.state;
@@ -87,14 +89,22 @@ export default function Boards() {
       });
     }
   };
+
+  const boardContextValue = {
+    boards,
+    setBoards,
+  };
+
   return (
-    <div className="boards-page-container">
-      <header className="boards-header">
-        <h1>{projectTitle}</h1>
-      </header>
-      <DndContext collisionDetection={closestCorners} onDragEnd={onDragEnd}>
-        <Column boards={boards} id={id} />
-      </DndContext>
-    </div>
+    <BoardContext.Provider value={boardContextValue}>
+      <div className="boards-page-container">
+        <header className="boards-header">
+          <h1>{projectTitle}</h1>
+        </header>
+        <DndContext collisionDetection={closestCorners} onDragEnd={onDragEnd}>
+          <Column boards={boards} setBoards={setBoards} id={id} />
+        </DndContext>
+      </div>
+    </BoardContext.Provider>
   );
 }
