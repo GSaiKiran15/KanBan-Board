@@ -16,7 +16,7 @@ export const Board = ({ id, title, cards = [] }) => {
   const [cardTitle, setCardTitle] = useState("");
   const [cardSubTitle, setCardSubTitle] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const { boards, setBoards } = useBoardContext();
+  const { setBoards } = useBoardContext();
 
   const style = {
     transition,

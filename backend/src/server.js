@@ -1,12 +1,28 @@
 import express from "express";
 import pool from "./db.js";
+import admin from "firebase-admin"
+import fs from "fs"
+
+const credentials = JSON.parse(
+  fs.readFileSync("./credentials.json"));
+
+admin.initializeApp({
+  credential: admin.credential.cert(credentials)
+});
 
 const app = express();
 
 app.use(express.json());
 
+app.post("/api/newUser", async (req, res) => {
+  const {uid, email, name} = req.body
+  const {rows} = await pool.query("insert into users (id, email, display_name) values($1, $2, $3) returning *", [uid, email, name])
+  res.json(rows)
+})
+
 app.get("/api/projects", async (req, res) => {
-  const { rows } = await pool.query("select * from projects");
+  const uid = req.body
+  const { rows } = await pool.query("select * from projects where owner_id=$1", [uid]);
   res.json(rows);
 });
 
