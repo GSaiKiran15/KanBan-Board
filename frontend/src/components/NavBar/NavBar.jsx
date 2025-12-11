@@ -21,7 +21,7 @@ export default function NavBar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/projects" className="navbar-brand">
-          <span className="brand-icon"><img src="../../../public/logo.png" className="kan"></img></span>
+          <span className="brand-icon"><img src="/logo.png" className="kan"></img></span>
           {/* <span className="brand-text">Kanban</span> */}
         </Link>
 
@@ -33,7 +33,7 @@ export default function NavBar() {
           <div className="navbar-user">
             {user && (
               <>
-                <span className="user-email">{user.}</span>
+                <span className="user-email">{user.displayName}</span>
                 <button onClick={handleLogout} className="logout-btn">
                   Logout
                 </button>

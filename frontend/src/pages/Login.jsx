@@ -16,8 +16,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const credential = await signInWithEmailAndPassword(getAuth(), email, password);
-
+      await signInWithEmailAndPassword(getAuth(), email, password);
       console.log("Login attempt:", email);
       navigate("/");
     } catch (err) {

@@ -12,7 +12,7 @@ const useUser = () => {
           })
         return unsubscribe
     }, [])
-    return {isLoading, user}
+    return {isLoading, user, userName: user?.displayName || ""}
 }
 
 export default useUser

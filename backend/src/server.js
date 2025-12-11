@@ -1,39 +1,73 @@
 import express from "express";
 import pool from "./db.js";
-import admin from "firebase-admin"
-import fs from "fs"
+import admin from "firebase-admin";
+import fs from "fs";
 
-const credentials = JSON.parse(
-  fs.readFileSync("./credentials.json"));
+const credentials = JSON.parse(fs.readFileSync("./credentials.json"));
 
 admin.initializeApp({
-  credential: admin.credential.cert(credentials)
+  credential: admin.credential.cert(credentials),
 });
 
 const app = express();
 
 app.use(express.json());
 
-app.post("/api/newUser", async (req, res) => {
-  const {uid, email, name} = req.body
-  const {rows} = await pool.query("insert into users (id, email, display_name) values($1, $2, $3) returning *", [uid, email, name])
-  res.json(rows)
-})
+const authenticate = async (req, res, next) => {
+  const token = req.headers.authorization?.split('Bearer ')[1];
+  if (!token) {
+    return res.status(401).json({error : "Unauthorized - No token provided"});
+  }
+  try{
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    console.error("Token verification error:", error);
+    return res.status(401).json({error: "Unauthorized - Invalid token"});
+  }
+}
 
-app.get("/api/projects", async (req, res) => {
-  const uid = req.body
-  const { rows } = await pool.query("select * from projects where owner_id=$1", [uid]);
+app.post("/api/newUser", async (req, res) => {
+  const { uid, email, name } = req.body;
+  if(!uid || !email || !name){
+    return res.status(400).json({error: "Missing required fields"})
+  }
+  try {
+    const { rows } = await pool.query(
+      "insert into users (id, email, display_name) values($1, $2, $3) returning *",
+      [uid, email, name]
+    );
+    res.json(rows);
+  } catch (error) {
+    if (error.code === "23505") {
+      // Duplicate key error - user already exists
+      console.log(`User with email ${email} already exists`);
+      return res.status(409).json({ error: "User already exists" });
+    }
+    console.error("Error creating user:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/api/projects",authenticate, async (req, res) => {
+  const uid = req.user.uid;
+  const { rows } = await pool.query(
+    "select * from projects where owner_id=$1",
+    [uid]
+  );
   res.json(rows);
 });
 
-app.post("/api/newProject", async (req, res) => {
+app.post("/api/newProject",authenticate, async (req, res) => {
   const title = (req.body?.title ?? "").trim();
+  const uid = req.user.uid
   if (!title) return res.status(400).json({ error: "title is required" });
 
   try {
     const { rows } = await pool.query(
-      "INSERT INTO projects (title) VALUES ($1) RETURNING *;",
-      [title]
+      "INSERT INTO projects (title, owner_id) VALUES ($1, $2) RETURNING *;",
+      [title, uid]
     );
     return res.status(201).json(rows[0]);
   } catch (err) {
@@ -45,7 +79,8 @@ app.post("/api/newProject", async (req, res) => {
   }
 });
 
-app.delete("/api/deleteProject", async (req, res) => {
+app.delete("/api/deleteProject", authenticate, async (req, res) => {
+  const uid = req.user.id
   const id = Number(req.body?.id);
   if (Number.isNaN(id)) return res.status(400).json({ error: "invalid id" });
 
@@ -138,12 +173,12 @@ app.delete("/api/deleteCard/:id", async (req, res) => {
 app.patch("/api/moveCard/:id", async (req, res) => {
   const cardId = req.params.id;
   const { board_id } = req.body;
-  
+
   const { rows } = await pool.query(
     "UPDATE elements SET board_id = $1 WHERE id = $2 RETURNING *",
     [board_id, cardId]
   );
-  
+
   res.json(rows[0]);
 });
 

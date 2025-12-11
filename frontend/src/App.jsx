@@ -18,8 +18,16 @@ const routes = [
     ),
     loader: async ({ params }) => {
       const id = params.id;
-      const response = await axios.get(`/api/boards/${id}`);
-      return response.data;
+      const {getAuth} = await import("firebase/auth")
+      const user = getAuth().currentUser
+      if (!user) return []
+      const token = await user.getIdToken()
+      const response = await axios.get(`/api/boards/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      return response.data
     },
   },
   {
@@ -34,7 +42,16 @@ const routes = [
       </Layout>
     ),
     loader: async () => {
-      const response = await axios.get("/api/projects");
+      const {getAuth} = await import("firebase/auth");
+      const user = getAuth().currentUser;
+      if (!user) return []
+
+      const token = await user.getIdToken()
+      const response = await axios.get("/api/projects", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     },
   },
