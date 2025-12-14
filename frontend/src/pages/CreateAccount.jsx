@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { createUserWithEmailAndPassword, updateProfile, getAuth } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+  getAuth,
+} from "firebase/auth";
 import "./Auth.css";
 import axios from "axios";
 
@@ -8,7 +12,7 @@ export default function CreateAccount() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [name, setName] = useState("")
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -31,18 +35,19 @@ export default function CreateAccount() {
     setIsLoading(true);
 
     try {
-      const credential = await createUserWithEmailAndPassword(getAuth(), email, password);
-      
-      // Add display name to Firebase Auth profile
-      await updateProfile(credential.user, {
-        displayName: name
-      });
-      
-      const uid = credential.user.uid
-      await axios.post("/api/newUser", {uid, email, name})
-      console.log("Account creation attempt:", email);
+      const credential = await createUserWithEmailAndPassword(
+        getAuth(),
+        email,
+        password
+      );
 
-      // Navigate to projects after successful registration
+      await updateProfile(credential.user, {
+        displayName: name,
+      });
+
+      const uid = credential.user.uid;
+      await axios.post("/api/newUser", { uid, email, name });
+
       navigate("/");
     } catch (err) {
       if (err.code === "auth/email-already-in-use") {
@@ -72,7 +77,6 @@ export default function CreateAccount() {
         {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleCreateAccount} className="auth-form">
-          
           <div className="form-group">
             <label htmlFor="name">Name</label>
             <input
@@ -85,7 +89,7 @@ export default function CreateAccount() {
               autoComplete="name"
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input

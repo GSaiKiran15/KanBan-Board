@@ -36,13 +36,14 @@ export const Board = ({ id, title, cards = [] }) => {
                 prevBoards.filter((board) => board.id !== id)
               );
               try {
+                if (isLoading || !user) {
+                  return;
+                }
                 const token = await user.getIdToken();
                 await axios.delete(`/api/deleteBoard/${id}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
-              } catch (error) {
-                console.log(error);
-              }
+              } catch (error) {return error}
             }}
             className="delete-btn"
           >
@@ -84,12 +85,19 @@ export const Board = ({ id, title, cards = [] }) => {
                 onClick={async () => {
                   if (!cardTitle.trim()) return;
                   try {
-                    const token = await user.getIdToken()
-                    const response = await axios.post("/api/newCard", {
-                      cardTitle,
-                      cardSubTitle,
-                      boardId: id,
-                    },{headers: {Authorization: `Bearer ${token}`}});
+                    if (isLoading || !user) {
+                      return;
+                    }
+                    const token = await user.getIdToken();
+                    const response = await axios.post(
+                      "/api/newCard",
+                      {
+                        cardTitle,
+                        cardSubTitle,
+                        boardId: id,
+                      },
+                      { headers: { Authorization: `Bearer ${token}` } }
+                    );
 
                     const realCard = response.data;
 
@@ -107,9 +115,7 @@ export const Board = ({ id, title, cards = [] }) => {
                     setShowForm(false);
                     setCardTitle("");
                     setCardSubTitle("");
-                  } catch (error) {
-                    console.log(error);
-                  }
+                  } catch (error) {return error}
                 }}
               >
                 Add Card

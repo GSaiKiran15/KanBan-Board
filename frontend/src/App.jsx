@@ -1,12 +1,16 @@
 import React from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  redirect,
+} from "react-router-dom";
 import Boards from "./pages/Boards";
 import Projects from "./pages/Projects";
 import axios from "axios";
 import CreateAccount from "./pages/CreateAccount";
 import Login from "./pages/Login";
 import Layout from "./components/Layout/Layout";
-
+import { waitForAuth } from "./utils/waitForAuth.js";
 
 const routes = [
   {
@@ -17,17 +21,23 @@ const routes = [
       </Layout>
     ),
     loader: async ({ params }) => {
+      const user = await waitForAuth();
       const id = params.id;
-      const {getAuth} = await import("firebase/auth")
-      const user = getAuth().currentUser
-      if (!user) return []
-      const token = await user.getIdToken()
-      const response = await axios.get(`/api/boards/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      if (!user) return redirect("/login");
+      try {
+        const token = await user.getIdToken();
+        const response = await axios.get(`/api/boards/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          return redirect("/login");
         }
-      });
-      return response.data
+        return [];
+      }
     },
   },
   {
@@ -42,17 +52,22 @@ const routes = [
       </Layout>
     ),
     loader: async () => {
-      const {getAuth} = await import("firebase/auth");
-      const user = getAuth().currentUser;
-      if (!user) return []
-
-      const token = await user.getIdToken()
-      const response = await axios.get("/api/projects", {
-        headers: {
-          Authorization: `Bearer ${token}`
+      const user = await waitForAuth();
+      if (!user) return redirect("/login");
+      try {
+        const token = await user.getIdToken();
+        const response = await axios.get("/api/projects", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          return redirect("/login");
         }
-      });
-      return response.data;
+        return [];
+      }
     },
   },
   {

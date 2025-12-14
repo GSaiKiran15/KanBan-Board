@@ -1,4 +1,3 @@
-// Card.jsx
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState, useRef, useEffect } from "react";
@@ -16,7 +15,7 @@ export const Card = ({ card, columnId }) => {
   const [editedTitle, setEditedTitle] = useState(card.title);
   const { boards, setBoards } = useBoardContext();
   const allBoards = boards.map((board) => [board.title, board.id]);
-  const { user } = useUser();
+  const { user, isLoading } = useUser();
 
   const {
     attributes,
@@ -71,6 +70,9 @@ export const Card = ({ card, columnId }) => {
       }))
     );
     try {
+      if (isLoading || !user) {
+        return;
+      }
       const token = await user.getIdToken();
       await axios.patch(
         `/api/editCard/${card.id}`,
@@ -81,9 +83,7 @@ export const Card = ({ card, columnId }) => {
           },
         }
       );
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {return error}
     setIsEditing(false);
   };
 
@@ -134,7 +134,6 @@ export const Card = ({ card, columnId }) => {
           {showMenu && (
             <div ref={menuRef} className="context-menu">
               {!isMoving ? (
-                // Main menu
                 <>
                   <button
                     className="menu-item"
@@ -151,7 +150,6 @@ export const Card = ({ card, columnId }) => {
                     className="menu-item"
                     onPointerDown={(e) => {
                       e.stopPropagation();
-                      console.log(boards);
                       setIsMoving(true);
                     }}
                   >
@@ -172,6 +170,9 @@ export const Card = ({ card, columnId }) => {
                         }))
                       );
                       try {
+                        if (isLoading || !user) {
+                          return;
+                        }
                         const token = await user.getIdToken();
                         await axios.delete(`/api/deleteCard/${card.id}`, {
                           data: {
@@ -179,9 +180,7 @@ export const Card = ({ card, columnId }) => {
                           },
                           headers: { Authorization: `Bearer ${token}` },
                         });
-                      } catch (error) {
-                        console.log("Failed to delete card", error);
-                      }
+                      } catch (error) {return error}
                     }}
                   >
                     <span className="menu-icon">🗑️</span>
@@ -189,7 +188,6 @@ export const Card = ({ card, columnId }) => {
                   </button>
                 </>
               ) : (
-                // Move submenu
                 <>
                   <button
                     className="menu-item"
@@ -214,26 +212,27 @@ export const Card = ({ card, columnId }) => {
                           }
                           setBoards((prevBoards) =>
                             prevBoards.map((b) => {
-                              // If this is the board we're moving TO
                               if (b.id === board[1]) {
                                 return {
                                   ...b,
                                   items: [
                                     ...b.items,
                                     { ...card, board_id: board[1] },
-                                  ], // Add card
+                                  ],
                                 };
                               }
-                              // For all other boards, remove the card if it exists
                               return {
                                 ...b,
                                 items: b.items.filter(
                                   (item) => item.id !== card.id
-                                ), // Remove card
+                                ),
                               };
                             })
                           );
                           try {
+                            if (isLoading || !user) {
+                              return;
+                            }
                             const token = await user.getIdToken();
                             await axios.patch(
                               `/api/moveCard/${card.id}`,
@@ -243,9 +242,7 @@ export const Card = ({ card, columnId }) => {
                               },
                               { headers: { Authorization: `Bearer ${token}` } }
                             );
-                          } catch (error) {
-                            console.log("Failed to move card", error);
-                          }
+                          } catch (error) {return error}
                           setShowMenu(false);
                           setIsMoving(false);
                         }}

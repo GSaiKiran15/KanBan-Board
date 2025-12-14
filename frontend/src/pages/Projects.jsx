@@ -29,8 +29,7 @@ export default function Projects() {
       }
     };
     fetchProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Intentionally empty - fetch on every mount
+  }, []);
 
   function openBoard(id) {
     if (!user) {

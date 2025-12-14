@@ -22,4 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-/backend/credentials.json
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+credentials.json
+**/credentials.json
+

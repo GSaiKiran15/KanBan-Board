@@ -17,7 +17,6 @@ export default function Login() {
 
     try {
       await signInWithEmailAndPassword(getAuth(), email, password);
-      console.log("Login attempt:", email);
       navigate("/");
     } catch (err) {
       setError(

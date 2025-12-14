@@ -16,7 +16,7 @@ export const Column = ({ id }) => {
   const { user, isLoading } = useUser();
 
   async function handleAddBoard(id) {
-    if (!user) {
+    if (isLoading || !user) {
       return;
     }
     const token = await user.getIdToken();
@@ -25,7 +25,7 @@ export const Column = ({ id }) => {
       {
         title,
         parent_board_id: id,
-        project_id: id,
+        project_id: id,   
       },
       {
         headers: { Authorization: `Bearer ${token}` },
