@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Card } from "../Card/Card";
 import { useBoardContext } from "../../contexts/BoardContext";
 import axios from "axios";
+import useUser from "../../useUser";
 
 export const Board = ({ id, title, cards = [] }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -17,7 +18,7 @@ export const Board = ({ id, title, cards = [] }) => {
   const [cardSubTitle, setCardSubTitle] = useState("");
   const [showForm, setShowForm] = useState(false);
   const { setBoards } = useBoardContext();
-
+  const { user, isLoading } = useUser();
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),
@@ -35,7 +36,10 @@ export const Board = ({ id, title, cards = [] }) => {
                 prevBoards.filter((board) => board.id !== id)
               );
               try {
-                await axios.delete(`/api/deleteBoard/${id}`);
+                const token = await user.getIdToken();
+                await axios.delete(`/api/deleteBoard/${id}`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                });
               } catch (error) {
                 console.log(error);
               }
@@ -80,11 +84,12 @@ export const Board = ({ id, title, cards = [] }) => {
                 onClick={async () => {
                   if (!cardTitle.trim()) return;
                   try {
+                    const token = await user.getIdToken()
                     const response = await axios.post("/api/newCard", {
                       cardTitle,
                       cardSubTitle,
                       boardId: id,
-                    });
+                    },{headers: {Authorization: `Bearer ${token}`}});
 
                     const realCard = response.data;
 

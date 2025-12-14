@@ -14,24 +14,24 @@ const app = express();
 app.use(express.json());
 
 const authenticate = async (req, res, next) => {
-  const token = req.headers.authorization?.split('Bearer ')[1];
+  const token = req.headers.authorization?.split("Bearer ")[1];
   if (!token) {
-    return res.status(401).json({error : "Unauthorized - No token provided"});
+    return res.status(401).json({ error: "Unauthorized - No token provided" });
   }
-  try{
+  try {
     const decodedToken = await admin.auth().verifyIdToken(token);
     req.user = decodedToken;
     next();
   } catch (error) {
     console.error("Token verification error:", error);
-    return res.status(401).json({error: "Unauthorized - Invalid token"});
+    return res.status(401).json({ error: "Unauthorized - Invalid token" });
   }
-}
+};
 
 app.post("/api/newUser", async (req, res) => {
   const { uid, email, name } = req.body;
-  if(!uid || !email || !name){
-    return res.status(400).json({error: "Missing required fields"})
+  if (!uid || !email || !name) {
+    return res.status(400).json({ error: "Missing required fields" });
   }
   try {
     const { rows } = await pool.query(
@@ -50,7 +50,7 @@ app.post("/api/newUser", async (req, res) => {
   }
 });
 
-app.get("/api/projects",authenticate, async (req, res) => {
+app.get("/api/projects", authenticate, async (req, res) => {
   const uid = req.user.uid;
   const { rows } = await pool.query(
     "select * from projects where owner_id=$1",
@@ -59,9 +59,9 @@ app.get("/api/projects",authenticate, async (req, res) => {
   res.json(rows);
 });
 
-app.post("/api/newProject",authenticate, async (req, res) => {
+app.post("/api/newProject", authenticate, async (req, res) => {
   const title = (req.body?.title ?? "").trim();
-  const uid = req.user.uid
+  const uid = req.user.uid;
   if (!title) return res.status(400).json({ error: "title is required" });
 
   try {
@@ -80,14 +80,14 @@ app.post("/api/newProject",authenticate, async (req, res) => {
 });
 
 app.delete("/api/deleteProject", authenticate, async (req, res) => {
-  const uid = req.user.id
+  const uid = req.user.uid;
   const id = Number(req.body?.id);
   if (Number.isNaN(id)) return res.status(400).json({ error: "invalid id" });
 
   try {
     const { rowCount } = await pool.query(
-      "DELETE FROM projects WHERE id = $1",
-      [id]
+      "DELETE FROM projects WHERE id = $1 and owner_id = $2",
+      [id, uid]
     );
     console.log(rowCount);
     if (rowCount === 0) return res.sendStatus(404);
@@ -104,8 +104,22 @@ app.delete("/api/deleteProject", authenticate, async (req, res) => {
   }
 });
 
-app.get("/api/boards/:id", async (req, res) => {
+app.get("/api/boards/:id", authenticate, async (req, res) => {
   const id = req.params.id;
+  const uid = req.user.uid;
+  const { rows } = await pool.query(
+    "select exists (select 1 from projects where id=$1 and owner_id = $2)",
+    [id, uid]
+  );
+
+  const ownsProject = rows[0].exists;
+  if (!ownsProject) {
+    return res
+      .status(403)
+      .json({
+        error: "You don't own this project!!, Bro please don't hack <3.",
+      });
+  }
   const boards = await pool.query("select * from boards where project_id=$1", [
     id,
   ]);
@@ -122,8 +136,13 @@ app.get("/api/boards/:id", async (req, res) => {
   res.json(boardsWithItems);
 });
 
-app.post("/api/newBoard", async (req, res) => {
+app.post("/api/newBoard",authenticate, async (req, res) => {
   const { title, project_id } = req.body;
+  const uid = req.user.uid;
+  const isOwner = await pool.query("select exists (select 1 from projects where id = $1 and owner_id = $2)", [project_id, uid])
+  if (!isOwner.rows[0].exists) {
+    return res.status(403).json({error : "Bro get the hell outta here!"})
+  }
   const { rows } = await pool.query(
     "insert into boards (title, project_id) values ($1, $2) returning *",
     [title, project_id]
@@ -132,20 +151,29 @@ app.post("/api/newBoard", async (req, res) => {
   res.json(rows[0]);
 });
 
-app.delete("/api/deleteBoard/:id", async (req, res) => {
+app.delete("/api/deleteBoard/:id",authenticate, async (req, res) => {
   const id = req.params.id;
+  const uid = req.user.uid
+  const isOwner = await pool.query("select (select owner_id from projects where id = (select project_id from boards where id = $1))", [id])
+  if (isOwner.rows[0].owner_id !== uid){
+    return res.status(403).json({error : "Bruh..."})
+  }
   await pool.query("delete from boards where id = $1", [id]);
   res.sendStatus(200);
 });
 
-app.post("/api/newCard", async (req, res) => {
+app.post("/api/newCard",authenticate, async (req, res) => {
   const { cardTitle, cardSubTitle, boardId } = req.body;
+  const uid = req.user.uid
+  const isOwner = await pool.query("select (select owner_id from projects where id = (select project_id from boards where id = $1))", [boardId])
+  if (isOwner.rows[0].owner_id !== uid){
+    return res.status(403).json({error : "Bro not your place!, get the hell outta here!!"})
+  }  
   const result = await pool.query(
     "SELECT COUNT(*) FROM elements WHERE board_id = $1",
     [boardId]
   );
   const position = parseInt(result.rows[0].count) + 1;
-
   const { rows } = await pool.query(
     "INSERT INTO elements (title, subtitle, board_id, position) VALUES ($1, $2, $3, $4) returning *",
     [cardTitle, cardSubTitle, boardId, position]
@@ -154,9 +182,14 @@ app.post("/api/newCard", async (req, res) => {
   res.json(rows[0]);
 });
 
-app.patch("/api/editCard/:id", async (req, res) => {
+app.patch("/api/editCard/:id",authenticate, async (req, res) => {
   const cardId = req.params.id;
-  const { editedTitle, editedSubTitle } = req.body;
+  const { editedTitle, editedSubTitle, boardId } = req.body;
+  const uid = req.user.uid
+  const isOwner = await pool.query("select (select owner_id from projects where id = (select project_id from boards where id = $1))", [boardId])
+  if (isOwner.rows[0].owner_id !== uid){
+    return res.status(403).json({error : "Bro not your place!, get the hell outta here!!"})
+  }  
   const { rows } = await pool.query(
     "update elements set title=$1 where id=$2 returning id, title",
     [editedTitle, cardId]
@@ -164,19 +197,30 @@ app.patch("/api/editCard/:id", async (req, res) => {
   res.sendStatus(200);
 });
 
-app.delete("/api/deleteCard/:id", async (req, res) => {
+app.delete("/api/deleteCard/:id",authenticate, async (req, res) => {
   const id = Number(req.params.id);
+  const uid = req.user.uid
+  const {boardId} = req.body
+  const isOwner = await pool.query("select (select owner_id from projects where id = (select project_id from boards where id = $1))", [boardId])
+  if (isOwner.rows[0].owner_id !== uid){
+    return res.status(403).json({error : "Bro not your place!, get the hell outta here!!"})
+  }  
   await pool.query("delete from elements where id = $1", [id]);
   res.sendStatus(200);
 });
 
-app.patch("/api/moveCard/:id", async (req, res) => {
+app.patch("/api/moveCard/:id",authenticate, async (req, res) => {
   const cardId = req.params.id;
-  const { board_id } = req.body;
-
+  const { destinationBoardId, boardId} = req.body;
+  const uid = req.user.uid
+  const isOwner = await pool.query("select (select owner_id from projects where id = (select project_id from boards where id = $1))", [boardId])
+  const destinationOwner = await pool.query("select (select owner_id from projects where id = (select project_id from boards where id = $1))", [destinationBoardId])
+  if (destinationOwner.rows[0].owner_id !== uid || isOwner.rows[0].owner_id !== uid) {
+    return res.status(403).json({error : "Bro not your place!, get the hell outta here!!"})
+  }  
   const { rows } = await pool.query(
     "UPDATE elements SET board_id = $1 WHERE id = $2 RETURNING *",
-    [board_id, cardId]
+    [destinationBoardId, cardId]
   );
 
   res.json(rows[0]);

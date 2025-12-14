@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import "./Card.css";
 import { useBoardContext } from "../../contexts/BoardContext";
 import axios from "axios";
+import useUser from "../../useUser.js";
 
 export const Card = ({ card, columnId }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -15,6 +16,8 @@ export const Card = ({ card, columnId }) => {
   const [editedTitle, setEditedTitle] = useState(card.title);
   const { boards, setBoards } = useBoardContext();
   const allBoards = boards.map((board) => [board.title, board.id]);
+  const { user } = useUser();
+
   const {
     attributes,
     listeners,
@@ -68,7 +71,16 @@ export const Card = ({ card, columnId }) => {
       }))
     );
     try {
-      await axios.patch(`/api/editCard/${card.id}`, { editedTitle });
+      const token = await user.getIdToken();
+      await axios.patch(
+        `/api/editCard/${card.id}`,
+        { editedTitle, boardId: columnId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
     } catch (error) {
       console.log(error);
     }
@@ -160,7 +172,13 @@ export const Card = ({ card, columnId }) => {
                         }))
                       );
                       try {
-                        await axios.delete(`/api/deleteCard/${card.id}`);
+                        const token = await user.getIdToken();
+                        await axios.delete(`/api/deleteCard/${card.id}`, {
+                          data: {
+                            boardId: columnId,
+                          },
+                          headers: { Authorization: `Bearer ${token}` },
+                        });
                       } catch (error) {
                         console.log("Failed to delete card", error);
                       }
@@ -216,9 +234,15 @@ export const Card = ({ card, columnId }) => {
                             })
                           );
                           try {
-                            await axios.patch(`/api/moveCard/${card.id}`, {
-                              board_id: board[1],
-                            });
+                            const token = await user.getIdToken();
+                            await axios.patch(
+                              `/api/moveCard/${card.id}`,
+                              {
+                                destinationBoardId: board[1],
+                                boardId: columnId,
+                              },
+                              { headers: { Authorization: `Bearer ${token}` } }
+                            );
                           } catch (error) {
                             console.log("Failed to move card", error);
                           }

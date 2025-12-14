@@ -33,6 +33,9 @@ export default function Projects() {
   }, []); // Intentionally empty - fetch on every mount
 
   function openBoard(id) {
+    if (!user) {
+      return;
+    }
     const project = projectInfo.find((p) => p.id === id);
     if (!project) return;
     return navigate(`/boards/${id}`, {
@@ -41,6 +44,9 @@ export default function Projects() {
   }
 
   const handleCreateProject = async () => {
+    if (!user) {
+      return;
+    }
     const token = await user.getIdToken();
     const res = await axios.post(
       "/api/newProject",
@@ -57,7 +63,14 @@ export default function Projects() {
   };
 
   const deleteProject = async (id) => {
-    await axios.delete("/api/deleteProject", { data: { id } });
+    if (!user) {
+      return;
+    }
+    const token = await user.getIdToken();
+    await axios.delete("/api/deleteProject", {
+      data: { id },
+      headers: { Authorization: `Bearer ${token}` },
+    });
     setProjectInfo((prev) => prev.filter((p) => p.id !== id));
   };
 
