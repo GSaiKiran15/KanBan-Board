@@ -174,12 +174,10 @@ app.post("/api/newCard", authenticate, async (req, res) => {
     [boardId]
   );
   if (isOwner.rows[0].owner_id !== uid) {
-    return res
-      .status(403)
-      .json({
-        error:
-          "Unauthorized: You do not have permission to add cards to this board",
-      });
+    return res.status(403).json({
+      error:
+        "Unauthorized: You do not have permission to add cards to this board",
+    });
   }
   const result = await pool.query(
     "SELECT COUNT(*) FROM elements WHERE board_id = $1",
@@ -202,11 +200,9 @@ app.patch("/api/editCard/:id", authenticate, async (req, res) => {
     [boardId]
   );
   if (isOwner.rows[0].owner_id !== uid) {
-    return res
-      .status(403)
-      .json({
-        error: "Unauthorized: You do not have permission to edit this card",
-      });
+    return res.status(403).json({
+      error: "Unauthorized: You do not have permission to edit this card",
+    });
   }
   const { rows } = await pool.query(
     "update elements set title=$1 where id=$2 returning id, title",
@@ -224,11 +220,9 @@ app.delete("/api/deleteCard/:id", authenticate, async (req, res) => {
     [boardId]
   );
   if (isOwner.rows[0].owner_id !== uid) {
-    return res
-      .status(403)
-      .json({
-        error: "Unauthorized: You do not have permission to delete this card",
-      });
+    return res.status(403).json({
+      error: "Unauthorized: You do not have permission to delete this card",
+    });
   }
   await pool.query("delete from elements where id = $1", [id]);
   res.sendStatus(200);
@@ -250,11 +244,9 @@ app.patch("/api/moveCard/:id", authenticate, async (req, res) => {
     destinationOwner.rows[0].owner_id !== uid ||
     isOwner.rows[0].owner_id !== uid
   ) {
-    return res
-      .status(403)
-      .json({
-        error: "Unauthorized: You do not have permission to move this card",
-      });
+    return res.status(403).json({
+      error: "Unauthorized: You do not have permission to move this card",
+    });
   }
   const { rows } = await pool.query(
     "UPDATE elements SET board_id = $1 WHERE id = $2 RETURNING *",
@@ -264,6 +256,8 @@ app.patch("/api/moveCard/:id", authenticate, async (req, res) => {
   res.json(rows[0]);
 });
 
-app.listen(8000, (req, res) => {
-  console.log("Server is running on PORT 8000.");
+const PORT = process.env.PORT || 8000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on PORT ${PORT}.`);
 });
