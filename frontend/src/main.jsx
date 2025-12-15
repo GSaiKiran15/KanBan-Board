@@ -19,6 +19,25 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+// Validate Firebase configuration
+const requiredConfigKeys = ["apiKey", "authDomain", "projectId", "appId"];
+const missingKeys = requiredConfigKeys.filter((key) => !firebaseConfig[key]);
+
+if (missingKeys.length > 0) {
+  console.error(
+    "Firebase initialization failed. Missing environment variables:"
+  );
+  missingKeys.forEach((key) => {
+    const envVar = `VITE_FIREBASE_${key
+      .replace(/([A-Z])/g, "_$1")
+      .toUpperCase()}`;
+    console.error(`- ${envVar}`);
+  });
+  throw new Error(
+    "Firebase configuration is incomplete. Please set the required environment variables on your deployment platform."
+  );
+}
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
