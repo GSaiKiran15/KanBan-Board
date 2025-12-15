@@ -1,13 +1,53 @@
 import express from "express";
 import pool from "./db.js";
 import admin from "firebase-admin";
+import cors from "cors";
+import fs from "fs";
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    console.log("Using Firebase credentials from environment variable");
+  } catch (error) {
+    console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT:", error.message);
+    process.exit(1);
+  }
+} else if (fs.existsSync("./credentials.json")) {
+  serviceAccount = JSON.parse(fs.readFileSync("./credentials.json", "utf8"));
+  console.log("Using Firebase credentials from credentials.json file");
+} else {
+  console.error("ERROR: Firebase credentials not found!");
+  console.error(
+    "Set FIREBASE_SERVICE_ACCOUNT environment variable or provide credentials.json"
+  );
+  process.exit(1);
+}
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
+
 const app = express();
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:5173",
+  "http://localhost:5173",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
@@ -257,5 +297,7 @@ app.patch("/api/moveCard/:id", authenticate, async (req, res) => {
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
-  console.log(`Server is running on PORT ${PORT}.`);
+  console.log(`Server is running on PORT ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`CORS enabled for: ${allowedOrigins.join(", ")}`);
 });
