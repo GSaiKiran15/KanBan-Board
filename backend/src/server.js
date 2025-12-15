@@ -1,14 +1,12 @@
 import express from "express";
 import pool from "./db.js";
 import admin from "firebase-admin";
-import fs from "fs";
 
-const credentials = JSON.parse(fs.readFileSync("./credentials.json"));
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
-  credential: admin.credential.cert(credentials),
+  credential: admin.credential.cert(serviceAccount),
 });
-
 const app = express();
 
 app.use(express.json());
