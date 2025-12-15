@@ -30,3 +30,4 @@ dist-ssr
 credentials.json
 **/credentials.json
 
+data_files.txt
