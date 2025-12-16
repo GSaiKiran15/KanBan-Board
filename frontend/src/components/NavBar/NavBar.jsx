@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import useUser from "../../useUser";
-import { getAuth, signOut } from "firebase/auth";
+import { signOut } from "firebase/auth";
+import { auth } from "../../firebase/config.js";
 import "./NavBar.css";
 
 export default function NavBar() {
@@ -9,7 +10,6 @@ export default function NavBar() {
 
   const handleLogout = async () => {
     try {
-      const auth = getAuth();
       await signOut(auth);
       navigate("/login");
     } catch (error) {
@@ -21,7 +21,9 @@ export default function NavBar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/projects" className="navbar-brand">
-          <span className="brand-icon"><img src="/logo.png" className="kan"></img></span>
+          <span className="brand-icon">
+            <img src="/logo.png" className="kan"></img>
+          </span>
           {/* <span className="brand-text">Kanban</span> */}
         </Link>
 

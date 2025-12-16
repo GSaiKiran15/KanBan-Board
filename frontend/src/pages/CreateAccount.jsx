@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-  getAuth,
-} from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from "../firebase/config.js";
 import "./Auth.css";
 import axios from "axios";
 
@@ -36,7 +33,7 @@ export default function CreateAccount() {
 
     try {
       const credential = await createUserWithEmailAndPassword(
-        getAuth(),
+        auth,
         email,
         password
       );
