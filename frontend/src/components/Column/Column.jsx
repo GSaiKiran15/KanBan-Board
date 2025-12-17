@@ -4,7 +4,7 @@ import {
   SortableContext,
 } from "@dnd-kit/sortable";
 import { Board } from "../Board/Board";
-import axios from "axios";
+import axios from "../../utils/api.js";
 import { useState } from "react";
 import { useBoardContext } from "../../contexts/BoardContext";
 import useUser from "../../useUser";
@@ -25,7 +25,7 @@ export const Column = ({ id }) => {
       {
         title,
         parent_board_id: id,
-        project_id: id,   
+        project_id: id,
       },
       {
         headers: { Authorization: `Bearer ${token}` },

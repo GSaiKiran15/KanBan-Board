@@ -1,6 +1,6 @@
 import { useLoaderData, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axios from "../utils/api.js";
 import "./Projects.css";
 import useUser from "../useUser";
 

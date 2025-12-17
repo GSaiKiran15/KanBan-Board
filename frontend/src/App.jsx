@@ -6,7 +6,7 @@ import {
 } from "react-router-dom";
 import Boards from "./pages/Boards";
 import Projects from "./pages/Projects";
-import axios from "axios";
+import axios from "./utils/api.js";
 import CreateAccount from "./pages/CreateAccount";
 import Login from "./pages/Login";
 import Layout from "./components/Layout/Layout";

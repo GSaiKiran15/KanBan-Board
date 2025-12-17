@@ -8,7 +8,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { Card } from "../Card/Card";
 import { useBoardContext } from "../../contexts/BoardContext";
-import axios from "axios";
+import axios from "../../utils/api.js";
 import useUser from "../../useUser";
 
 export const Board = ({ id, title, cards = [] }) => {
@@ -43,7 +43,9 @@ export const Board = ({ id, title, cards = [] }) => {
                 await axios.delete(`/api/deleteBoard/${id}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
-              } catch (error) {return error}
+              } catch (error) {
+                return error;
+              }
             }}
             className="delete-btn"
           >
@@ -115,7 +117,9 @@ export const Board = ({ id, title, cards = [] }) => {
                     setShowForm(false);
                     setCardTitle("");
                     setCardSubTitle("");
-                  } catch (error) {return error}
+                  } catch (error) {
+                    return error;
+                  }
                 }}
               >
                 Add Card
