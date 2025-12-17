@@ -46,31 +46,52 @@ export default function Projects() {
     if (!user) {
       return;
     }
-    const token = await user.getIdToken();
-    const res = await axios.post(
-      "/api/newProject",
-      { title: newTitle },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    if (!newTitle.trim()) {
+      alert("Please enter a project title");
+      return;
+    }
+    try {
+      const token = await user.getIdToken();
+      const res = await axios.post(
+        "/api/newProject",
+        { title: newTitle },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setProjectInfo((prev) => [...prev, res.data]);
+      setNewTitle("");
+      setShowForm(false);
+    } catch (error) {
+      console.error("Error creating project:", error);
+      if (error.response?.status === 409) {
+        alert("A project with this title already exists");
+      } else {
+        alert("Failed to create project. Please try again.");
       }
-    );
-    setProjectInfo((prev) => [...prev, res.data]);
-    setNewTitle("");
-    setShowForm(false);
+    }
   };
 
   const deleteProject = async (id) => {
     if (!user) {
       return;
     }
-    const token = await user.getIdToken();
-    await axios.delete("/api/deleteProject", {
-      data: { id },
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setProjectInfo((prev) => prev.filter((p) => p.id !== id));
+    if (!confirm("Are you sure you want to delete this project?")) {
+      return;
+    }
+    try {
+      const token = await user.getIdToken();
+      await axios.delete("/api/deleteProject", {
+        data: { id },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProjectInfo((prev) => prev.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      alert("Failed to delete project. Please try again.");
+    }
   };
 
   return (
